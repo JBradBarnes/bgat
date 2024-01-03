@@ -1,0 +1,25 @@
+{
+  "name": "begat",
+  "version": "1.0.0",
+  "description": "An attempt at functionaly data-driven code generation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JBradBarnes/begat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JBradBarnes/begat/issues"
+  },
+  "homepage": "https://github.com/JBradBarnes/begat#readme",
+  "dependencies": {
+    "glob": "^10.3.10",
+    "hygen": "^6.2.11",
+    "jest": "^29.7.0"
+  }
+}
