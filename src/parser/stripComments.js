@@ -1,4 +1,4 @@
-module.exports = function stripComments(str) {
+function stripComments(str) {
   const regex = /(\/\/[^\n]*)|(`(?:[^`\\]|\\.)*`)/g;
 
   const result = str.replace(regex, (match, group1, group2) => {
@@ -10,4 +10,6 @@ module.exports = function stripComments(str) {
     return group2;
   });
   return result;
-};
+}
+
+module.exports = { stripComments };

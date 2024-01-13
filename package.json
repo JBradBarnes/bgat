@@ -4,7 +4,8 @@
   "description": "An attempt at functionaly data-driven code generation",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "jest:watch": "jest --watch"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,4 @@
-const stripComments = require("./stripComments.js");
+const { stripComments } = require("../stripComments.js");
 
 test("comments parse out when follows", () => {
   let str = `
