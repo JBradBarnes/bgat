@@ -66,4 +66,8 @@ describe("Statement unit", () => {
     let ctx = new ParserContext();
     expect(() => ctx.pushCode(file)).toThrow();
   });
+
+  // test("Each command should end in a string unless it is a variable declaration", () => {
+
+  // })
 });

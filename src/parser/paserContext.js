@@ -19,16 +19,18 @@ class ParserContext {
     let lines = stripComments(code);
     this.commands.push(...splitCommands(lines));
   };
+  tokenize = () => {};
 }
 
 class ParserToken {
-  constructor(typ, name, children = []) {
+  constructor(typ, text, children = []) {
     this.type = typ;
-    this.name = name;
+    this.text = text;
     this.children = children;
   }
 }
 
 module.exports = {
   ParserContext,
+  ParserToken,
 };
