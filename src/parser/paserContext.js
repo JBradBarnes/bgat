@@ -1,11 +1,13 @@
 let { stripComments } = require("./stripComments");
 const { splitStatements: splitCommands } = require("./tests/splitStatements");
+const { tokenize } = require("./tokenizeCommand");
 
 class ParserContext {
   constructor() {
     this.newContext();
   }
   newContext = () => {
+    this.root = __dirname || "";
     this.commands = [];
     this.clearParsed();
   };
@@ -14,12 +16,21 @@ class ParserContext {
     this.lists = [];
     this.parameters = [];
     this.buffers = [];
+    this.filename = "";
   };
-  pushCode = (code) => {
+  pushCode = (code, filename) => {
+    this.filename = filename;
     let lines = stripComments(code);
     this.commands.push(...splitCommands(lines));
   };
-  tokenize = () => {};
+  tokenizeCode = () => {
+    try {
+      this.commandTokens = tokenize(this.commands);
+    } catch (e) {
+      throw new Error(`Syntax Error in file: ${this.filename}\n`);
+    }
+  };
+  typeCheckCode = () => {};
 }
 
 class ParserToken {

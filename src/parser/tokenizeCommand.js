@@ -1,6 +1,6 @@
 const { ParserToken } = require("./paserContext");
 
-function tokenize(cmd, line = 0, allowOnlyExpressions = false) {
+function tokenize(cmd, line = 0) {
   let tokensText = cmd.trim().match(/("[^"]*"|'[^']*'|`[^`]*`|\S+)/g);
   let tokens = [];
   for (let txt in tokensText) {
@@ -104,4 +104,7 @@ function templateTokenizer(str) {
 module.exports = {
   tokenize,
   templateTokenizer,
+  TokenType,
+  DECLARATIONS,
+  Types,
 };
