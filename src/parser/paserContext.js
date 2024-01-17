@@ -1,5 +1,6 @@
 let { stripComments } = require("./stripComments");
-const { splitStatements: splitCommands } = require("./tests/splitStatements");
+const { checkSyntax } = require("./syntaxCheckCmd");
+const { splitStatements: splitCommands } = require("./splitStatements");
 const { tokenize } = require("./tokenizeCommand");
 
 class ParserContext {
@@ -30,18 +31,41 @@ class ParserContext {
       throw new Error(`Syntax Error in file: ${this.filename}\n`);
     }
   };
+  syntaxCheckStatements = () => {
+    let errors = [];
+    this.commandTokens.forEach((t, i) => {
+      try {
+        checkSyntax(t);
+      } catch (e) {
+        errors.push(e);
+      }
+    });
+    throw new Error(errors.join("\n"));
+  };
   typeCheckCode = () => {};
+  mountCode = (str) => {
+    this.pushCode(str);
+    this.syntaxCheckStatements();
+    this.typeCheckCode();
+  };
 }
 
-class ParserToken {
-  constructor(typ, text, children = []) {
+const VariableType = {
+  LIST: "list",
+  PARAM: "param",
+  CONST: "const",
+  BUFFER: "buf",
+};
+class VariableContext {
+  constructor(typ, text, value = "") {
     this.type = typ;
-    this.text = text;
-    this.children = children;
+    this.name = text;
+    this.value = value || (typ === VariableType.LIST ? [] : "");
   }
 }
 
 module.exports = {
   ParserContext,
-  ParserToken,
+  VariableContext,
+  VariableType,
 };

@@ -24,6 +24,32 @@ describe("Statement unit", () => {
     expect(ctx.commands.length).toBe(2);
   });
 
+  test("In cases of list the list can allow more lines in a single statement", () => {
+    let file = `
+    param $platform
+    list $template from (
+      "string1",
+      "string2"
+    )
+    `;
+    let ctx = new ParserContext();
+    ctx.pushCode(file);
+    expect(ctx.commands.length).toBe(2);
+  });
+
+  test("Templates are nestable, In cases of list the list can allow more lines in a single statement,", () => {
+    let file = `
+    param $platform
+    list $template from (
+      "string1",
+      $var.concat ("string2", "string3")
+    )
+    `;
+    let ctx = new ParserContext();
+    ctx.pushCode(file);
+    expect(ctx.commands.length).toBe(2);
+  });
+
   test("In cases of escapse within templates line number still works", () => {
     let file = `
     param $platform
@@ -66,8 +92,14 @@ describe("Statement unit", () => {
     let ctx = new ParserContext();
     expect(() => ctx.pushCode(file)).toThrow();
   });
+});
 
-  // test("Each command should end in a string unless it is a variable declaration", () => {
-
-  // })
+test("Methods join above commands", () => {
+  let file = `
+  File
+     .write("hello.js", "hello")
+  `;
+  let ctx = new ParserContext();
+  ctx.pushCode(file);
+  expect(ctx.commands.length).toBe(1);
 });
