@@ -8,23 +8,26 @@ const stringWrite = `
 File.write ("${filename}","${fileContent}")
 `;
 
-// afterAll(() => {
-//   // Clean up: Delete files that begin with an underscore
-//   const files = fs.readdirSync(__dirname);
-//   for (const file of files) {
-//     if (file.startsWith("_")) {
-//       fs.unlinkSync(file);
-//     }
-//   }
-// });
+afterEach(() => {
+  // Clean up: Delete files that begin with an underscore
+  const files = fs.readdirSync(__dirname);
+  for (const file of files) {
+    if (file.startsWith("_")) {
+      fs.unlinkSync(__dirname + "/" + file);
+    }
+  }
+});
 
-test("does write file", () => {
+const runCode = (code) => {
   let ctx = new ParserContext();
   ctx.root = __dirname;
-  ctx.pushCode(stringWrite);
+  ctx.pushCode(code);
   ctx.tokenizeCode();
   ctx.exec();
+  return ctx;
+};
 
+const testFile = (filename, fileContent) => {
   // Check if the file was created
   const filePath = __dirname + "/" + filename;
   expect(fs.existsSync(filePath)).toBe(true);
@@ -32,4 +35,19 @@ test("does write file", () => {
   // Read the content of the file and compare it with the expected content
   const fileContentRead = fs.readFileSync(filePath, "utf8");
   expect(fileContentRead).toBe(fileContent);
+};
+
+test("does write file", () => {
+  runCode(stringWrite);
+  testFile(filename, fileContent);
+});
+
+const writeWithVar = `
+buf $file from "${fileContent}"
+File.write ("${filename}", $file)
+`;
+
+test("does write file thru var", () => {
+  runCode(writeWithVar);
+  testFile(filename, fileContent);
 });

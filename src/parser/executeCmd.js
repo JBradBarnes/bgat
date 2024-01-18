@@ -8,7 +8,7 @@ const { ParserContext } = require("./paserContext");
  * @param {ParserContext} ctx - The name of the method.
  **/
 function executeCmd(cmdTokens = [], ctx) {
-  let isVarDeclaration = cmdTokens[0].TokenType === TokenType.TYPE;
+  let isVarDeclaration = cmdTokens[0].type === TokenType.TYPE;
   if (isVarDeclaration) {
     execVarDeclaration(cmdTokens, ctx);
   } else {
@@ -28,7 +28,9 @@ function exec(cmdTokensProp = [], ctx) {
     let firstIsValue =
       tokenTyp === TokenType.STRING ||
       tokenTyp === TokenType.LIST ||
-      tokenTyp === TokenType.REFINEDLIST;
+      tokenTyp === TokenType.REFINEDLIST ||
+      tokenTyp === TokenType.VARIABLE;
+
     if (firstIsValue) {
       if (cmdTokens.length > 1)
         throw new Error(
@@ -40,7 +42,13 @@ function exec(cmdTokensProp = [], ctx) {
       return firstIsValue;
     }
   };
-  if (checkFirst()) return cmdTokens[0];
+
+  if (checkFirst()) {
+    if (cmdTokens[0].type === TokenType.VARIABLE && cmdTokens.length === 1)
+      return execArg(cmdTokens[0], ctx);
+    else return cmdTokens[0];
+  }
+
   while (cmdTokens.find((t) => t.type === TokenType.METHOD)) {
     checkFirst();
     if (!subject) subject = cmdTokens.shift();
@@ -63,6 +71,15 @@ function exec(cmdTokensProp = [], ctx) {
  **/
 function execArg(arg, ctx) {
   switch (arg.type) {
+    case TokenType.VARIABLE: {
+      let variable = ctx.variables.find((v) => v.name === arg.text);
+      if (!variable) throw new Error(`Undefined variable: ${arg.text}`);
+      if (variable.type === VariableType.LIST)
+        return new ParserToken(TokenType.REFINEDLIST, arg.text, [
+          variable.value,
+        ]);
+      else return new ParserToken(TokenType.STRING, variable.value);
+    }
     case TokenType.STRING:
       return new ParserToken(TokenType.REFINEDLIST, arg.text, [arg.text]);
     case TokenType.TEMPLATE:
@@ -73,16 +90,6 @@ function execArg(arg, ctx) {
       return execList(arg.children, ctx);
     case TokenType.REFINEDLIST: {
       return arg;
-    }
-    case TokenType.VARIABLE: {
-      let variable = ctx.variables.find((v) => v.name === arg.name);
-      if (!variable) throw new Error(`Undefined variable: ${arg.name}`);
-      if (variable.type === VariableType.LIST)
-        return new ParserToken(TokenType.REFINEDLIST, arg.text, [
-          variable.value,
-        ]);
-      else
-        return new ParserToken(TokenType.REFINEDLIST, arg.text, variable.value);
     }
     default:
       throw new Error(
@@ -101,7 +108,21 @@ function execVarDeclaration(cmdTokens = [], ctx) {
     cmdTokens[1].text,
     cmdTokens[0].text === "list" ? [] : ""
   );
-  if (cmdTokens.length > 3) newVar.value = exec(cmdTokens.slice(3), ctx).value;
+  if (cmdTokens.length > 3) {
+    let resultToken = exec(cmdTokens.slice(3), ctx);
+    const isList = [TokenType.LIST, TokenType.REFINEDLIST].includes(
+      resultToken.type
+    );
+    const isStr = [TokenType.STRING].includes(resultToken.type);
+    if (isList) {
+      newVar.value = resultToken.children;
+    } else if (isStr) {
+      newVar.value = resultToken.text;
+    } else {
+      throw new Error(`Unexpected result token ${resultToken.type}`);
+    }
+  }
+  ctx.variables.push(newVar);
   return newVar;
 }
 
@@ -195,7 +216,7 @@ function execList(children = [], ctx) {
   for (let child of children) {
     if (child.type === TokenType.STRING) refinedListToken.children.push(child);
     else if (Array.isArray(child)) {
-      let childToken = exec(child);
+      let childToken = exec(child, ctx);
       if (childToken.type === TokenType.REFINEDLIST)
         refinedListToken.children.push(...childToken.children);
       else if (childToken.type === TokenType.STRING)
@@ -223,7 +244,7 @@ function execTemplate(children = [], ctx) {
   for (let child of children) {
     if (child.type === TokenType.string) strToken += child.text;
     else if (Array.isArray(child)) {
-      let childValue = exec(child).text;
+      let childValue = exec(child, ctx).text;
       strToken += childValue;
     } else {
       throw new Error(

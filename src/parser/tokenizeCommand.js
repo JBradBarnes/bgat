@@ -9,7 +9,7 @@
 function tokenize(cmd, line = 0) {
   let tokensText = cmd
     .trim()
-    .match(/("[^"]*"|'[^']*'|`[^`]*`|\w+|\.|\(|\)|,)/g);
+    .match(/("[^"]*"|'[^']*'|`[^`]*`|\$?\w+|\.|\(|\)|,)/g);
 
   let tokenBuilder = "";
   // build case null|list|method

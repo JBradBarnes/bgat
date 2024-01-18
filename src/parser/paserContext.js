@@ -38,9 +38,7 @@ class ParserContext {
     }
     if (errors.length) {
       throw new Error(
-        `Syntax Error in file: ${this.filename}\n${e.message}\n${errors.join(
-          "\n"
-        )}`
+        `Syntax Error in file: ${this.filename}\n${errors.join("\n")}`
       );
     }
   };
