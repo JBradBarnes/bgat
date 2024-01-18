@@ -1,5 +1,7 @@
 let { stripComments } = require("./stripComments");
 const { checkSyntax } = require("./syntaxCheckCmd");
+const { executeCmd } = require("./executeCmd");
+const { VariableContext } = require("./variableContext");
 const { splitStatements: splitCommands } = require("./splitStatements");
 const { tokenize } = require("./tokenizeCommand");
 
@@ -14,10 +16,11 @@ class ParserContext {
   };
   clearParsed = () => {
     this.commandTokens = [];
-    this.lists = [];
-    this.parameters = [];
-    this.buffers = [];
     this.filename = "";
+    this.clearExecCtx();
+  };
+  clearExecCtx = () => {
+    this.variables = [];
   };
   pushCode = (code, filename) => {
     this.filename = filename;
@@ -48,24 +51,17 @@ class ParserContext {
     this.syntaxCheckStatements();
     this.typeCheckCode();
   };
-}
-
-const VariableType = {
-  LIST: "list",
-  PARAM: "param",
-  CONST: "const",
-  BUFFER: "buf",
-};
-class VariableContext {
-  constructor(typ, text, value = "") {
-    this.type = typ;
-    this.name = text;
-    this.value = value || (typ === VariableType.LIST ? [] : "");
-  }
+  exec = (params = []) => {
+    this.clearExecCtx();
+    for (let { name, value } of params) {
+      push(new VariableContext(VariableType.PARAM, name, value));
+    }
+    for (let cmd of this.commands) {
+      executeCmd(cmd, this.variables);
+    }
+  };
 }
 
 module.exports = {
   ParserContext,
-  VariableContext,
-  VariableType,
 };

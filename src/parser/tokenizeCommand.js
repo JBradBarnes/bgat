@@ -59,6 +59,7 @@ function tokenize(cmd, line = 0) {
  */
 const TokenType = {
   LIST: "list",
+  REFINEDLIST: "refinedlist",
   TEMPLATE: "template",
   STRING: "string",
   TYPE: "type",
@@ -232,4 +233,5 @@ module.exports = {
   SystemTypes,
   STRING_TYPES,
   Statics,
+  ParserToken,
 };

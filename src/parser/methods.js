@@ -1,5 +1,6 @@
 const { globSync } = require("glob");
-const { BehaviorTypes: Types } = require("./tokenizeCommand");
+const { BehaviorTypes: Types, Statics } = require("./tokenizeCommand");
+const fs = require("fs");
 
 /**
  * Represents a method.
@@ -9,21 +10,22 @@ class Method {
   /**
    * Creates an instance of Method.
    * @param {string} name - The name of the method.
-   * @param {string} bindType - The bind type.
-   * @param {string} returnType - The return type.
+   * @param {Statics} bindType - The bind type.
+   * @param {Statics["LIST"] | Statics["STRING"]} returnType - The return type.
    * @param {Function} impl - The implementation function.
-   * @param {boolean} [mutable=true] - The implementation function.
    * @param {number} [arity=0] - The arity of the method (optional, default is 0).
    * @param {string} [arityType="strict"] - The arity of the method (optional, default is 0).
+   * @param {boolean} [mutable=true] - This changes parent.
+   *
    */
   constructor(
     name,
     bindType,
     returnType,
     impl,
-    mutable = true,
     arityType = ArityType.NONE,
-    arity = 0
+    arity = 0,
+    mutable = true
   ) {
     this.name = name;
     this.bindType = bindType;
@@ -51,13 +53,9 @@ const ArityType = {
   SINGLE: "single",
 };
 
-// /** @type {{locales: Object.<string, Method>}} */
 const Builtins = {
-  glob: new Method(
-    "glob",
-    "list",
-    "list",
-    (ctx, glob) => {
+  List: {
+    glob: (ctx, [glob]) => {
       let files = globSync(glob, {
         ignore: "node_modules/**",
         cwd: ctx.root || undefined,
@@ -65,12 +63,37 @@ const Builtins = {
       ctx.subject.push(files);
       return ctx.subject;
     },
-    true,
+  },
+  File: {
+    write: (_ctx, [filename, content]) => {
+      fs.writeFileSync(filename, content);
+      return content;
+    },
+  },
+};
+
+// /** @type {{locales: Object.<string, Method>}} */
+const BuiltinMethods = [
+  new Method(
+    "glob",
+    Statics.LIST,
+    Statics.LIST,
+    Builtins.List.glob,
+    ArityType.SINGLE,
     1
   ),
-};
+  new Method(
+    "write",
+    Statics.FILE,
+    Statics.STRING,
+    Builtins.File.write,
+    ArityType.STRICT,
+    2
+  ),
+];
 
 module.exports = {
   Method,
   Builtins,
+  BuiltinMethods,
 };
