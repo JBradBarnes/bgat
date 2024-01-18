@@ -28,10 +28,20 @@ class ParserContext {
     this.commands.push(...splitCommands(lines));
   };
   tokenizeCode = () => {
-    try {
-      this.commandTokens = tokenize(this.commands);
-    } catch (e) {
-      throw new Error(`Syntax Error in file: ${this.filename}\n`);
+    let errors = [];
+    for (let cmd of this.commands) {
+      try {
+        this.commandTokens.push(tokenize(cmd));
+      } catch (e) {
+        errors.push(e);
+      }
+    }
+    if (errors.length) {
+      throw new Error(
+        `Syntax Error in file: ${this.filename}\n${e.message}\n${errors.join(
+          "\n"
+        )}`
+      );
     }
   };
   syntaxCheckStatements = () => {
@@ -56,8 +66,8 @@ class ParserContext {
     for (let { name, value } of params) {
       push(new VariableContext(VariableType.PARAM, name, value));
     }
-    for (let cmd of this.commands) {
-      executeCmd(cmd, this.variables);
+    for (let cmd of this.commandTokens) {
+      executeCmd(cmd, this);
     }
   };
 }

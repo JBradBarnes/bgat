@@ -1,6 +1,7 @@
 const { globSync } = require("glob");
 const { BehaviorTypes: Types, Statics } = require("./tokenizeCommand");
 const fs = require("fs");
+const path = require("path");
 
 /**
  * Represents a method.
@@ -65,8 +66,10 @@ const Builtins = {
     },
   },
   File: {
-    write: (_ctx, [filename, content]) => {
-      fs.writeFileSync(filename, content);
+    write: (ctx, [filename, content]) => {
+      console.log("ctx.root ", path.resolve(ctx.root, filename));
+      let filePath = path.resolve(ctx.root, filename);
+      fs.writeFileSync(filePath, content);
       return content;
     },
   },

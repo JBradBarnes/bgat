@@ -20,7 +20,9 @@ File.write ("${filename}","${fileContent}")
 
 test("does write file", () => {
   let ctx = new ParserContext();
+  ctx.root = __dirname;
   ctx.pushCode(stringWrite);
+  ctx.tokenizeCode();
   ctx.exec();
 
   // Check if the file was created
