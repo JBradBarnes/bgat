@@ -56,13 +56,8 @@ const ArityType = {
 
 const Builtins = {
   List: {
-    glob: (ctx, [glob]) => {
-      let files = globSync(glob, {
-        ignore: "node_modules/**",
-        cwd: ctx.root || undefined,
-      });
-      ctx.subject.push(files);
-      return ctx.subject;
+    join: (ctx, [string]) => {
+      return (ctx.subject?.children || []).join(string);
     },
   },
   File: {
@@ -72,6 +67,19 @@ const Builtins = {
       fs.writeFileSync(filePath, content);
       return content;
     },
+    glob: (ctx, [glob]) => {
+      try {
+        let files = globSync(glob, {
+          ignore: "node_modules/**",
+          cwd: ctx.root || undefined,
+        });
+        console.log("globs", files);
+        return files;
+      } catch (e) {
+        console.error(e.message);
+        throw e;
+      }
+    },
   },
 };
 
@@ -79,9 +87,9 @@ const Builtins = {
 const BuiltinMethods = [
   new Method(
     "glob",
+    Statics.FILE,
     Statics.LIST,
-    Statics.LIST,
-    Builtins.List.glob,
+    Builtins.File.glob,
     ArityType.SINGLE,
     1
   ),
@@ -92,6 +100,13 @@ const BuiltinMethods = [
     Builtins.File.write,
     ArityType.STRICT,
     2
+  ),
+  new Method(
+    "join",
+    Statics.LIST,
+    Statics.STRING,
+    Builtins.List.join,
+    ArityType.LIST
   ),
 ];
 

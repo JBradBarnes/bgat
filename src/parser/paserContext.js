@@ -18,6 +18,7 @@ class ParserContext {
     this.commandTokens = [];
     this.filename = "";
     this.clearExecCtx();
+    this.line = 0;
   };
   clearExecCtx = () => {
     this.variables = [];
@@ -31,10 +32,11 @@ class ParserContext {
     let errors = [];
     for (let cmd of this.commands) {
       try {
-        this.commandTokens.push(tokenize(cmd));
+        this.commandTokens.push(tokenize(cmd, this));
       } catch (e) {
         errors.push(e);
       }
+      this.line++;
     }
     if (errors.length) {
       throw new Error(

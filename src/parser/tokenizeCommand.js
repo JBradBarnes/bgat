@@ -6,7 +6,7 @@
  * @returns {ParserToken[]} An array of ParserToken objects.
  * @throws {Error} Throws an error if there's an issue with tokenization.
  */
-function tokenize(cmd, line = 0) {
+function tokenize(cmd, ctx = {}) {
   let tokensText = cmd
     .trim()
     .match(/("[^"]*"|'[^']*'|`[^`]*`|\$?\w+|\.|\(|\)|,)/g);
@@ -41,11 +41,11 @@ function tokenize(cmd, line = 0) {
     }
     if (buildCase) continue;
     try {
-      let token = identifyToken(text.trim());
+      let token = identifyToken(text.trim(), ctx);
       tokens.push(token);
     } catch (e) {
-      if (line === null) throw e;
-      throw new Error(`line: ${line} ${cmd} \n` + e.message);
+      if (ctx.line === null) throw e;
+      throw new Error(`line: ${ctx.line} ${cmd} \n` + e.message);
     }
   }
   return tokens;
@@ -139,14 +139,18 @@ class ParserToken {
  * @returns {ParserToken} A ParserToken object.
  * @throws {Error} Throws an error if there's an issue with identifying the token.
  */
-function identifyToken(txt, isInExpression = false) {
+function identifyToken(txt, ctx, isInExpression = false) {
   let token;
   if (txt[0] === "`") {
     if (txt[txt.length - 1] != "`")
       throw new Error(
         "Unclosed template string. (`) expected. \n token: " + txt
       );
-    token = new ParserToken(TokenType.TEMPLATE, txt, templateTokenizer(txt));
+    token = new ParserToken(
+      TokenType.TEMPLATE,
+      txt,
+      templateTokenizer(txt, ctx)
+    );
     // list
   } else if (txt[0] === "(") {
     if (txt[txt.length - 1] != ")")
@@ -157,7 +161,7 @@ function identifyToken(txt, isInExpression = false) {
       txt
         .slice(1, txt.length - 1)
         .split(",")
-        .map((t) => tokenize(t.trim(), null))
+        .map((t) => tokenize(t.trim(), ctx))
     );
   } else if (txt[0] === "'") {
     if (txt[txt.length - 1] != "'")
@@ -199,7 +203,7 @@ function identifyToken(txt, isInExpression = false) {
  * @returns {(string[]|ParserToken[][])} An array of strings or an array of arrays of ParserToken objects.
  * @throws {Error} Throws an error if there's an issue with tokenizing the template string.
  */
-function templateTokenizer(str) {
+function templateTokenizer(str, ctx) {
   let childrenRaw = str.split(/(?<!\\){(.*?[^\\])}(?<!\\)/);
   let children = [];
   let isInExpression = true;
@@ -215,7 +219,7 @@ function templateTokenizer(str) {
       children.push(
         expressions
           .filter((s) => !!s.trim())
-          .map((ex) => identifyToken(ex, true))
+          .map((ex) => identifyToken(ex, ctx, true))
       );
     }
   }

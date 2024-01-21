@@ -51,3 +51,13 @@ test("does write file thru var", () => {
   runCode(writeWithVar);
   testFile(filename, fileContent);
 });
+
+const writeBlob = `
+list $tilemaps from File.glob "*.tmx"
+File.write ("${filename}", $tilemaps.join "\n")
+`;
+
+test("does write glob", () => {
+  runCode(writeBlob);
+  testFile(filename, "tilemap2.tmx\ntilemap.tmx");
+});

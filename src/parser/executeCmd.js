@@ -32,7 +32,7 @@ function exec(cmdTokensProp = [], ctx) {
       tokenTyp === TokenType.VARIABLE;
 
     if (firstIsValue) {
-      if (cmdTokens.length > 1)
+      if (cmdTokens.length > 1 && tokenTyp !== TokenType.VARIABLE)
         throw new Error(
           `Unexpected code following litteral ${cmdTokens[0].text} ${cmdTokens
             .slice(1)
@@ -44,9 +44,12 @@ function exec(cmdTokensProp = [], ctx) {
   };
 
   if (checkFirst()) {
-    if (cmdTokens[0].type === TokenType.VARIABLE && cmdTokens.length === 1)
-      return execArg(cmdTokens[0], ctx);
-    else return cmdTokens[0];
+    if (cmdTokens.length === 1)
+      if (cmdTokens[0].type === TokenType.VARIABLE) {
+        return execArg(cmdTokens[0], ctx);
+      } else {
+        return cmdTokens[0];
+      }
   }
 
   while (cmdTokens.find((t) => t.type === TokenType.METHOD)) {
@@ -75,13 +78,13 @@ function execArg(arg, ctx) {
       let variable = ctx.variables.find((v) => v.name === arg.text);
       if (!variable) throw new Error(`Undefined variable: ${arg.text}`);
       if (variable.type === VariableType.LIST)
-        return new ParserToken(TokenType.REFINEDLIST, arg.text, [
-          variable.value,
-        ]);
+        return new ParserToken(TokenType.REFINEDLIST, arg.text, variable.value);
       else return new ParserToken(TokenType.STRING, variable.value);
     }
     case TokenType.STRING:
-      return new ParserToken(TokenType.REFINEDLIST, arg.text, [arg.text]);
+      return new ParserToken(TokenType.REFINEDLIST, arg.text, [
+        arg.text.slice(1, -1),
+      ]);
     case TokenType.TEMPLATE:
       return new ParserToken(TokenType.REFINEDLIST, arg.text, [
         execTemplate(arg.children, ctx),
@@ -139,26 +142,31 @@ function execMethod(
       ? ""
       : list.text;
   let listToken = { ...list };
-  if (list.type !== TokenType.REFINEDLIST)
-    listToken = { ...execList(list.children), text: list.text };
-  let subjectType = getMethodTypeFromToken(subject, ctx.variables);
+  if (list.type !== TokenType.REFINEDLIST) {
+    let listTok = execList(list.children);
+    listToken = { ...listTok, text: list.text };
+  }
+  let subjectType = getMethodTypeFromToken(subject, ctx);
   let methodName = methodToken.text.slice(1);
   let method = getMethod(subjectType, methodName);
   let { returnType } = method;
   let newTokenTyp =
     returnType === Statics.LIST ? TokenType.REFINEDLIST : TokenType.STRING;
+
+  let refinedArg = execArg(listToken);
   try {
     let value = method.impl(
       {
-        subject,
+        subject:
+          subject.type === TokenType.VARIABLE ? execArg(subject, ctx) : subject,
         ...ctx,
       },
-      listToken.children.map((s) => s.slice(1, -1))
+      refinedArg.children
     );
 
     let newToken = new ParserToken(
       newTokenTyp,
-      newTokenTyp === TokenType.REFINEDLIST ? text : value,
+      newTokenTyp === TokenType.REFINEDLIST ? text : `"${value}"`,
       newTokenTyp === TokenType.REFINEDLIST ? value : undefined
     );
 
@@ -192,7 +200,7 @@ function getMethodTypeFromToken(token, ctx) {
     case TokenType.VARIABLE: {
       let variable = ctx.variables.find((v) => v.name === token.text);
       if (!variable) throw new Error(`Undefined variable ${token.text}`);
-      return variable.type.toLowercase === "list"
+      return variable.type === VariableType.LIST
         ? Statics.LIST
         : Statics.STRING;
     }
@@ -214,14 +222,24 @@ function getMethodTypeFromToken(token, ctx) {
 function execList(children = [], ctx) {
   let refinedListToken = new ParserToken(TokenType.REFINEDLIST, "", []);
   for (let child of children) {
-    if (child.type === TokenType.STRING) refinedListToken.children.push(child);
+    if (child.type === TokenType.STRING)
+      refinedListToken.children.push(child.text.slice(1, -1));
+    else if (child.type === TokenType.REFINEDLIST)
+      refinedListToken.children.push(child.children);
     else if (Array.isArray(child)) {
       let childToken = exec(child, ctx);
       if (childToken.type === TokenType.REFINEDLIST)
         refinedListToken.children.push(...childToken.children);
       else if (childToken.type === TokenType.STRING)
-        refinedListToken.children.push(childToken.text);
-      else {
+        refinedListToken.children.push(childToken.text.slice(1, -1));
+      else if (childToken.type === TokenType.VARIABLE) {
+        let token = execArg(childToken, ctx);
+        let values =
+          token.type === TokenType.STRING
+            ? [token.text.slice(1, -1)]
+            : token.children;
+        refinedListToken.children.push(...values);
+      } else {
         throw new Error(
           `Parser recieved an unexpected type from List execution ${childToken.type}`
         );
