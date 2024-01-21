@@ -56,8 +56,11 @@ const ArityType = {
 
 const Builtins = {
   List: {
-    join: (ctx, [string]) => {
-      return (ctx.subject?.children || []).join(string);
+    join: (ctx, [str]) => {
+      return (ctx.subject?.children || []).join(str);
+    },
+    join_regex: (ctx, [str]) => {
+      return (ctx.subject?.children || []).join(new RegExp(str));
     },
   },
   File: {
@@ -106,6 +109,13 @@ const BuiltinMethods = [
     Statics.LIST,
     Statics.STRING,
     Builtins.List.join,
+    ArityType.LIST
+  ),
+  new Method(
+    "join_regex",
+    Statics.LIST,
+    Statics.STRING,
+    Builtins.List.join_regex,
     ArityType.LIST
   ),
 ];
