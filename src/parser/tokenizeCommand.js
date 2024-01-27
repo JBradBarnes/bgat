@@ -14,6 +14,12 @@ function tokenize(cmd, ctx = {}) {
   let tokenBuilder = "";
   // build case null|list|method
   let buildCase = null;
+  let buildNestLevel = 0;
+  let resetBuildCase = () => {
+    tokenBuilder = "";
+    buildCase = null;
+    buildNestLevel = 0;
+  };
 
   tokensText = tokensText.filter((x) => x);
   let tokens = [];
@@ -21,19 +27,22 @@ function tokenize(cmd, ctx = {}) {
     let text = txt.trim();
     if (buildCase === "method") {
       text = "." + text;
-      tokenBuilder = "";
-      buildCase = null;
+      resetBuildCase();
     } else if (buildCase === "list") {
       tokenBuilder += text;
+      if (text === "(") buildNestLevel++;
       if (text === ")") {
-        text = tokenBuilder;
-        tokenBuilder = "";
-        buildCase = null;
+        buildNestLevel--;
+        if (buildNestLevel <= 0) {
+          text = tokenBuilder;
+          resetBuildCase();
+        }
       }
     } else {
       if (text == "(") {
         tokenBuilder = "(";
         buildCase = "list";
+        buildNestLevel++;
       } else if (text === ".") {
         tokenBuilder = ".";
         buildCase = "method";
@@ -158,10 +167,9 @@ function identifyToken(txt, ctx, isInExpression = false) {
     token = new ParserToken(
       TokenType.LIST,
       txt,
-      txt
-        .slice(1, txt.length - 1)
-        .split(",")
-        .map((t) => tokenize(t.trim(), ctx))
+      splitByComma(txt.slice(1, txt.length - 1)).map((t) =>
+        tokenize(t.trim(), ctx)
+      )
     );
   } else if (txt[0] === "'") {
     if (txt[txt.length - 1] != "'")
@@ -226,6 +234,39 @@ function templateTokenizer(str, ctx) {
   if (isInExpression)
     throw new Error("Unclosed template expression. (}) Expected");
   return children;
+}
+
+function splitByComma(str) {
+  let result = [];
+  let insideString = false;
+  let parenthesesCount = 0;
+  let currentChunk = "";
+
+  for (let char of str) {
+    if (char === '"' || char === "'") {
+      insideString = !insideString;
+    }
+
+    if (!insideString) {
+      if (char === "(") {
+        parenthesesCount++;
+      } else if (char === ")") {
+        parenthesesCount--;
+      }
+
+      if (char === "," && parenthesesCount === 0) {
+        result.push(currentChunk.trim());
+        currentChunk = "";
+        continue;
+      }
+    }
+
+    currentChunk += char;
+  }
+
+  result.push(currentChunk.trim());
+
+  return result;
 }
 
 module.exports = {

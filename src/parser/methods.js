@@ -54,6 +54,38 @@ const ArityType = {
   SINGLE: "single",
 };
 
+const camelToSnake = (str) => {
+  return str
+    .split(/([A-Z][a-z]*)/)
+    .filter((s) => s)
+    .map((s) => s.toLowerCase())
+    .join("_");
+};
+const snakeToCamel = (str) => {
+  return str
+    .split(/_([a-z]*)/)
+    .filter((s) => s)
+    .map((s) => {
+      s[0].toUpperCase() + s.slice(1);
+    })
+    .join("");
+};
+
+const jsTranslatedStrToStrMethodNames = [
+  // String.prototype.replace.name(),
+  "replace",
+  "replaceAll",
+];
+
+// const snakeCaseStrToStr = jsTranslatedStrToStrMethodNames.map(camelToSnake);
+
+const strToStr = (name) => (ctx, args) => {
+  return (ctx.subject?.text.slice(1, -1) || "")[name](...args);
+};
+const arrToStr = (name) => {};
+const strToArr = (name) => {};
+const arrayToArr = (name) => {};
+
 const Builtins = {
   List: {
     join: (ctx, [str]) => {
@@ -63,8 +95,24 @@ const Builtins = {
       return (ctx.subject?.children || []).join(new RegExp(str));
     },
   },
+  String: {
+    replace: (ctx, [str]) => {
+      return (ctx.subject?.text || []).replace(str);
+    },
+    replace_regex: (ctx, [str]) => {
+      return (ctx.subject?.text || []).replace(new RegExp(str));
+    },
+    ...Object.fromEntries(
+      jsTranslatedStrToStrMethodNames.map((jsName) => [
+        camelToSnake(jsName),
+        strToStr(jsName),
+      ])
+    ),
+  },
   File: {
     write: (ctx, [filename, content]) => {
+      // need to abstract arity errors
+      if (!content || !filename) console.error("Method Requires Two arguments");
       console.log("ctx.root ", path.resolve(ctx.root, filename));
       let filePath = path.resolve(ctx.root, filename);
       fs.writeFileSync(filePath, content);
@@ -118,10 +166,23 @@ const BuiltinMethods = [
     Builtins.List.join_regex,
     ArityType.LIST
   ),
+
+  ...jsTranslatedStrToStrMethodNames.map(
+    (jsName) =>
+      new Method(
+        camelToSnake(jsName),
+        Statics.STRING,
+        Statics.STRING,
+        Builtins.String[camelToSnake(jsName)],
+        // will have some zeros
+        1
+      )
+  ),
 ];
 
 module.exports = {
   Method,
   Builtins,
   BuiltinMethods,
+  // snakeCaseStrToStr,
 };

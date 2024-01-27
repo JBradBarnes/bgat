@@ -61,3 +61,13 @@ test("does write glob", () => {
   runCode(writeBlob);
   testFile(filename, "tilemap2.tmx\ntilemap.tmx");
 });
+
+let replaceCode = `
+buf $str from "here to there"
+File.write("${filename}", $str.replace("here", "there"))
+`;
+
+test("does use str to str", () => {
+  runCode(replaceCode);
+  testFile(filename, "there to there");
+});

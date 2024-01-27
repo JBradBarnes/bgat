@@ -109,7 +109,7 @@ function execVarDeclaration(cmdTokens = [], ctx) {
   let newVar = new VariableContext(
     cmdTokens[0].text,
     cmdTokens[1].text,
-    cmdTokens[0].text === "list" ? [] : ""
+    cmdTokens[0].type === VariableType.LIST ? [] : ""
   );
   if (cmdTokens.length > 3) {
     let resultToken = exec(cmdTokens.slice(3), ctx);
@@ -155,10 +155,11 @@ function execMethod(
 
   let refinedArg = execArg(listToken);
   try {
+    let refinedSubject =
+      subject.type === TokenType.VARIABLE ? execArg(subject, ctx) : subject;
     let value = method.impl(
       {
-        subject:
-          subject.type === TokenType.VARIABLE ? execArg(subject, ctx) : subject,
+        subject: refinedSubject,
         ...ctx,
       },
       refinedArg.children
@@ -173,7 +174,7 @@ function execMethod(
     return newToken;
   } catch (e) {
     throw new Error(
-      `Issue in method execution ${subject.text}${methodToken.text}\n${e.messge}`
+      `Issue in method execution ${subject.text}.${methodName}\n${e.messge}`
     );
   }
 }
