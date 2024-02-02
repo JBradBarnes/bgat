@@ -47,6 +47,8 @@ function exec(cmdTokensProp = [], ctx) {
     if (cmdTokens.length === 1)
       if (cmdTokens[0].type === TokenType.VARIABLE) {
         return execArg(cmdTokens[0], ctx);
+      } else if (cmdTokens[0].type === TokenType.LIST) {
+        return execList(cmdTokens[0].children, ctx);
       } else {
         return cmdTokens[0];
       }

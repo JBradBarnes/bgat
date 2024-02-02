@@ -1,5 +1,9 @@
 const { globSync } = require("glob");
-const { BehaviorTypes: Types, Statics } = require("./tokenizeCommand");
+const {
+  BehaviorTypes: Types,
+  Statics,
+  TokenType,
+} = require("./tokenizeCommand");
 const fs = require("fs");
 const path = require("path");
 
@@ -71,41 +75,68 @@ const snakeToCamel = (str) => {
     .join("");
 };
 
-const jsTranslatedStrToStrMethodNames = [
-  // String.prototype.replace.name(),
-  "replace",
-  "replaceAll",
-];
+const jsTranslatedStrToStrMethods = {
+  replace: { arity: 2, arityType: ArityType.STRICT },
+  replaceAll: { arity: 2, arityType: ArityType.STRICT },
+  concat: { arityType: ArityType.LIST },
+  charAt: { arity: 1, arityType: ArityType.STRICT },
+  toLowerCase: { arity: 0, arityType: ArityType.NONE },
+  toUpperCase: { arity: 0, arityType: ArityType.NONE },
+  index: { arity: 1, arityType: ArityType.STRICT },
+  indexOf: { arity: 1, arityType: ArityType.STRICT },
+  padEnd: { arity: 1, arityType: ArityType.STRICT },
+  repeat: { arity: 1, arityType: ArityType.STRICT },
+  slice: { arity: 2, arityType: ArityType.STRICT },
+  substr: { arity: 1, arityType: ArityType.STRICT },
+  trim: { arity: 0, arityType: ArityType.NONE },
+  search: { arity: 1, arityType: ArityType.STRICT },
+};
 
-// const snakeCaseStrToStr = jsTranslatedStrToStrMethodNames.map(camelToSnake);
+const jsRegexStrToStr = ["replace", "replaceAll", "search"];
+
+const jsTranslatedStrToStrMethodNames = Object.keys(
+  jsTranslatedStrToStrMethods
+);
+
+const toRegexName = (name) => `regex_${name}`;
 
 const strToStr = (name) => (ctx, args) => {
-  return (ctx.subject?.text.slice(1, -1) || "")[name](...args);
+  return (ctx.subject?.text.slice(1, -1) || "")[name](...args) + "";
 };
+
+const regexStrToStr =
+  (name) =>
+  (ctx, [arg1, ...args]) => {
+    return (
+      (ctx.subject?.text.slice(1, -1) || "")[name](new RegExp(arg1), ...args) +
+      ""
+    );
+  };
+
+const mapperToStringMethod = (name) => (ctx, args) => {
+  let result = ctx.subject.children.flatMap((child) => {
+    let strSubject = new ParserToken(TokenType.STRING, `"${child}"`);
+    return BuiltinMethods.String[name]({ ...ctx, subject: strSubject }, args);
+  });
+  return result;
+};
+
 const arrToStr = (name) => {};
 const strToArr = (name) => {};
 const arrayToArr = (name) => {};
 
 const Builtins = {
-  List: {
-    join: (ctx, [str]) => {
-      return (ctx.subject?.children || []).join(str);
-    },
-    join_regex: (ctx, [str]) => {
-      return (ctx.subject?.children || []).join(new RegExp(str));
-    },
-  },
   String: {
-    replace: (ctx, [str]) => {
-      return (ctx.subject?.text || []).replace(str);
-    },
-    replace_regex: (ctx, [str]) => {
-      return (ctx.subject?.text || []).replace(new RegExp(str));
-    },
     ...Object.fromEntries(
       jsTranslatedStrToStrMethodNames.map((jsName) => [
         camelToSnake(jsName),
         strToStr(jsName),
+      ])
+    ),
+    ...Object.fromEntries(
+      jsRegexStrToStr.map((jsName) => [
+        toRegexName(camelToSnake(jsName)),
+        regexStrToStr(jsName),
       ])
     ),
   },
@@ -132,6 +163,22 @@ const Builtins = {
       }
     },
   },
+};
+
+Builtins.List = {
+  join: (ctx, [str]) => {
+    return (ctx.subject?.children || []).join(str);
+  },
+  join_regex: (ctx, [str]) => {
+    return (ctx.subject?.children || []).join(new RegExp(str));
+  },
+  // include all string methods as mappers on list
+  ...Object.fromEntries(
+    Object.keys(Builtins.String).map((name) => [
+      name,
+      mapperToStringMethod(name),
+    ])
+  ),
 };
 
 // /** @type {{locales: Object.<string, Method>}} */
@@ -175,7 +222,35 @@ const BuiltinMethods = [
         Statics.STRING,
         Builtins.String[camelToSnake(jsName)],
         // will have some zeros
-        1
+        jsTranslatedStrToStrMethods[jsName].arityType,
+        jsTranslatedStrToStrMethods[jsName].arity
+      )
+  ),
+  ...jsRegexStrToStr.map(
+    (jsName) =>
+      new Method(
+        toRegexName(camelToSnake(jsName)),
+        Statics.STRING,
+        Statics.STRING,
+        Builtins.String[toRegexName(camelToSnake(jsName))],
+        // will have some zeros
+        jsTranslatedStrToStrMethods[jsName].arityType,
+        jsTranslatedStrToStrMethods[jsName].arity
+      )
+  ),
+
+  // include all string methods as mappers on list
+  // include all string methods as mappers on list
+
+  ...Object.keys(Builtins.String).map(
+    (snakeName) =>
+      new Method(
+        snakeName,
+        Statics.LIST,
+        Statics.LIST,
+        Builtins.List[snakeName],
+        Builtins.String[snakeName].arityType,
+        Builtins.String[snakeName].arity
       )
   ),
 ];

@@ -71,3 +71,33 @@ test("does use str to str", () => {
   runCode(replaceCode);
   testFile(filename, "there to there");
 });
+
+let sliceCode = `
+buf $str from "01234"
+File.write("${filename}", $str.slice("2","4"))
+`;
+
+test("does use str to str", () => {
+  runCode(sliceCode);
+  testFile(filename, "23");
+});
+
+let regexCode = `
+buf $str from "01234"
+File.write("${filename}", $str.regex_replace("[23]","5"))
+`;
+
+test("does use regex str to str", () => {
+  runCode(regexCode);
+  testFile(filename, "01534");
+});
+
+let listCode = `
+list $list from ("0","1","2","3")
+File.write("${filename}",$list.join(""))
+`;
+
+test("does use lists", () => {
+  runCode(listCode);
+  testFile(filename, "0123");
+});
