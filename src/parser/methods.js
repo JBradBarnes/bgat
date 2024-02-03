@@ -6,6 +6,7 @@ const {
 } = require("./tokenizeCommand");
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 /**
  * Represents a method.
@@ -30,7 +31,7 @@ class Method {
     impl,
     arityType = ArityType.NONE,
     arity = 0,
-    mutable = true
+    mutable = false
   ) {
     this.name = name;
     this.bindType = bindType;
@@ -38,6 +39,7 @@ class Method {
     this.arity = arity;
     this.arityType = arityType;
     this.impl = impl;
+    this.mutable = mutable;
   }
 }
 
@@ -188,6 +190,25 @@ const Builtins = {
         return result;
       } catch (e) {
         console.error(e);
+        throw e;
+      }
+    },
+    shell: (ctx, [code]) => {
+      try {
+        let result = "";
+        let bytes = execSync(code, (err, stdout, stderr) => {
+          if (err) throw e;
+          if (stdout) result = stdout;
+          if (stderr) throw new Error(stderr);
+          else return "";
+        });
+        if (bytes?.length) {
+          result = new TextDecoder().decode(bytes);
+        }
+        return result;
+      } catch (e) {
+        console.error(e);
+        throw e;
       }
     },
   },
@@ -216,6 +237,14 @@ const BuiltinMethods = [
     Statics.Cmd,
     Statics.STRING,
     Builtins.Cmd.run,
+    ArityType.SINGLE,
+    1
+  ),
+  new Method(
+    "shell",
+    Statics.Cmd,
+    Statics.STRING,
+    Builtins.Cmd.shell,
     ArityType.SINGLE,
     1
   ),
@@ -289,7 +318,8 @@ const BuiltinMethods = [
     Statics.STRING,
     Builtins.String.set,
     ArityType.SINGLE,
-    1
+    1,
+    true
   ),
 
   // include all string methods as mappers on list

@@ -136,3 +136,13 @@ test("does run code", () => {
   runCode(writeWithRun);
   testFile(filename, runAdd);
 });
+
+const writeWithShell = `
+buf $file from "${fileContent}"
+$file.set(Cmd.shell("echo '${runAdd}'"))
+File.write ("${filename}", $file)
+`;
+test("shell cmd works", () => {
+  runCode(writeWithShell);
+  testFile(filename, runAdd + "\n");
+});
