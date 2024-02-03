@@ -1,7 +1,7 @@
 let { stripComments } = require("./stripComments");
 const { checkSyntax } = require("./syntaxCheckCmd");
 const { executeCmd } = require("./executeCmd");
-const { VariableContext } = require("./variableContext");
+const { VariableContext, VariableType } = require("./variableContext");
 const { splitStatements: splitCommands } = require("./splitStatements");
 const { tokenize } = require("./tokenizeCommand");
 
@@ -64,8 +64,14 @@ class ParserContext {
   };
   exec = (params = []) => {
     if (!this.isChild) this.clearExecCtx();
+    let runVarCtx = new VariableContext(
+      VariableType.BUFFER,
+      "$__current__",
+      ""
+    );
+    this.variables.push(runVarCtx);
     for (let { name, value } of params) {
-      push(new VariableContext(VariableType.PARAM, name, value));
+      this.variables.push(new VariableContext(VariableType.PARAM, name, value));
     }
     let result = "";
     for (let cmd of this.commandTokens) {
@@ -73,11 +79,20 @@ class ParserContext {
     }
     return result;
   };
-  newChildContext = () => {
+  newChildContext = (params = []) => {
     let newCtx = new ParserContext({ isChild: true });
-    newCtx.variables = [...this.variables];
+    newCtx.variables = [...params, ...this.variables];
     return newCtx;
   };
+  getVariableCtx = (name) => {
+    let variableCtx = this.variables.find(
+      (v) => v.name === name || v.alias.includes(name)
+    );
+    if (!variableCtx)
+      throw new Error(`Variable ${name} is not in scope or undefined`);
+    return variableCtx;
+  };
+  getRunVarCtx = () => this.getVariableCtx("$__current__");
 }
 
 module.exports = {

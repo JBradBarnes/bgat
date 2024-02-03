@@ -144,5 +144,27 @@ File.write ("${filename}", $file)
 `;
 test("shell cmd works", () => {
   runCode(writeWithShell);
+  // echo adds a new line?
   testFile(filename, runAdd + "\n");
 });
+
+const chaining = `
+buf $index from "1"
+buf $sub from "this."
+$sub.concat('index:').concat($index)"
+`;
+test("chaining works", () => {
+  runCode(chaining);
+  testFile(filename, "this.index:1");
+});
+
+const mapList = `
+list $list from ("0","1","2","3")
+list $mapped from $list.map("$item.concat(' index:').concat($index)")
+File.write ("${filename}", $mapped.join("\n"))
+`;
+// test("list cmd map works", () => {
+//   runCode(mapList);
+//   // echo adds a new line?
+//   testFile(filename, runAdd + "\n");
+// });

@@ -100,7 +100,7 @@ function exec(cmdTokensProp = [], ctx) {
 function execArg(arg, ctx) {
   switch (arg.type) {
     case TokenType.VARIABLE: {
-      let variable = ctx.variables.find((v) => v.name === arg.text);
+      let variable = ctx.getVariableCtx(arg.text);
       if (!variable) throw new Error(`Undefined variable: ${arg.text}`);
       let result =
         variable.type === VariableType.LIST
@@ -229,7 +229,7 @@ function getMethod(subjectType, methodName, methods = BuiltinMethods) {
 function getMethodTypeFromToken(token, ctx) {
   switch (token.type) {
     case TokenType.VARIABLE: {
-      let variable = ctx.variables.find((v) => v.name === token.text);
+      let variable = ctx.getVariableCtx(token.text);
       if (!variable) throw new Error(`Undefined variable ${token.text}`);
       return variable.type === VariableType.LIST
         ? Statics.LIST
@@ -238,9 +238,21 @@ function getMethodTypeFromToken(token, ctx) {
     case TokenType.STATIC: {
       return token.text;
     }
+    case TokenType.STRING: {
+      let runCtx = ctx.getRunVarCtx();
+      runCtx.value = token.text.slice(1, -1);
+      runCtx.type = VariableType.BUFFER;
+      return runCtx.value;
+    }
+    case TokenType.REFINEDLIST: {
+      let runCtx = ctx.getRunVarCtx();
+      runCtx.value = token.children;
+      runCtx.type = VariableType.LIST;
+      return runCtx.value;
+    }
     default: {
       throw new Error(
-        `${token.text} is not a static or variable and cannot be used as the subject of a method`
+        `${token.text}, type ${token.type}  is not a static or variable and cannot be used as the subject of a method`
       );
     }
   }

@@ -7,6 +7,7 @@ const {
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
+const { VariableContext, VariableType } = require("./variableContext");
 
 /**
  * Represents a method.
@@ -152,7 +153,6 @@ const Builtins = {
     write: (ctx, [filename, content]) => {
       // need to abstract arity errors
       if (!content || !filename) console.error("Method Requires Two arguments");
-      console.log("ctx.root ", path.resolve(ctx.root, filename));
       let filePath = path.resolve(ctx.root, filename);
       fs.writeFileSync(filePath, content);
       return content || "";
@@ -181,9 +181,9 @@ const Builtins = {
   },
   Cmd: {
     // run in scope
-    run: (ctx, [code]) => {
+    run: (ctx, [code], params) => {
       try {
-        let newCtx = ctx.newChildContext();
+        let newCtx = ctx.newChildContext(params);
         newCtx.pushCode(code);
         newCtx.tokenizeCode();
         let result = newCtx.exec() || "";
@@ -228,6 +228,32 @@ Builtins.List = {
       mapperToStringMethod(name),
     ])
   ),
+  map: (ctx, [code]) => {
+    let resCtx = new VariableContext(VariableType.LIST, "result", [], ["$4"]);
+    ctx.subject.children.forEach((item, index) => {
+      let itCtx = new VariableContext(VariableType.PARAM, "$item", item, [
+        "$1",
+      ]);
+      let inCtx = new VariableContext(
+        VariableType.PARAM,
+        "$index",
+        index + "",
+        ["$2"]
+      );
+      let params = [
+        {
+          ...ctx.subject.variable,
+          name: "$subject",
+          alias: [...ctx.subject.variable.alias, "$3"],
+        },
+        resCtx,
+        itCtx,
+        inCtx,
+      ];
+      resCtx.value.push(Builtins.Cmd.run(ctx, [code], params));
+    });
+    return resCtx.value;
+  },
 };
 
 // /** @type {{locales: Object.<string, Method>}} */
@@ -335,6 +361,16 @@ const BuiltinMethods = [
         Builtins.String[snakeName].arityType,
         Builtins.String[snakeName].arity
       )
+  ),
+
+  new Method(
+    "map",
+    Statics.LIST,
+    Statics.LIST,
+    Builtins.List.map,
+    ArityType.SINGLE,
+    1,
+    true
   ),
 ];
 
