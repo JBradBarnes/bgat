@@ -6,8 +6,9 @@ const { splitStatements: splitCommands } = require("./splitStatements");
 const { tokenize } = require("./tokenizeCommand");
 
 class ParserContext {
-  constructor() {
+  constructor({ isChild = false } = {}) {
     this.newContext();
+    this.isChild = isChild;
   }
   newContext = () => {
     this.root = __dirname || "";
@@ -62,13 +63,20 @@ class ParserContext {
     this.typeCheckCode();
   };
   exec = (params = []) => {
-    this.clearExecCtx();
+    if (!this.isChild) this.clearExecCtx();
     for (let { name, value } of params) {
       push(new VariableContext(VariableType.PARAM, name, value));
     }
+    let result = "";
     for (let cmd of this.commandTokens) {
-      executeCmd(cmd, this);
+      result = executeCmd(cmd, this);
     }
+    return result;
+  };
+  newChildContext = () => {
+    let newCtx = new ParserContext({ isChild: true });
+    newCtx.variables = [...this.variables];
+    return newCtx;
   };
 }
 

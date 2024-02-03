@@ -101,3 +101,38 @@ test("does use lists", () => {
   runCode(listCode);
   testFile(filename, "0123");
 });
+
+let readCode = `
+buf $file from File.read("${filename}")
+File.write("${filename}",$file.concat("Read File"))
+`;
+
+test("does read file", () => {
+  runCode(listCode);
+  runCode(readCode);
+  testFile(filename, "0123" + "Read File");
+});
+
+const runAdd = "runAdd";
+
+const setVar = `
+buf $file from "${fileContent}"
+$file.set('${runAdd}')
+File.write ("${filename}", $file)
+`;
+
+test("does set var", () => {
+  runCode(setVar);
+  testFile(filename, runAdd);
+});
+
+const writeWithRun = `
+buf $file from "${fileContent}"
+Cmd.run("$file.set('${runAdd}')")
+File.write ("${filename}", $file)
+`;
+
+test("does run code", () => {
+  runCode(writeWithRun);
+  testFile(filename, runAdd);
+});

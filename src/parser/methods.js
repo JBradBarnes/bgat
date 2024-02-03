@@ -139,6 +139,12 @@ const Builtins = {
         regexStrToStr(jsName),
       ])
     ),
+    set: (ctx, [value]) => {
+      if (!ctx.subject.variable)
+        throw new TypeError("set can only be used on a variable");
+      ctx.subject.variable.value = `"${value}"`;
+      return value;
+    },
   },
   File: {
     write: (ctx, [filename, content]) => {
@@ -147,7 +153,15 @@ const Builtins = {
       console.log("ctx.root ", path.resolve(ctx.root, filename));
       let filePath = path.resolve(ctx.root, filename);
       fs.writeFileSync(filePath, content);
-      return content;
+      return content || "";
+    },
+    read: (ctx, [filename]) => {
+      // need to abstract arity errors
+      if (!filename) console.error("Method Requires an argument");
+      console.log("ctx.root ", path.resolve(ctx.root, filename));
+      let filePath = path.resolve(ctx.root, filename);
+      let content = fs.readFileSync(filePath);
+      return content || "";
     },
     glob: (ctx, [glob]) => {
       try {
@@ -160,6 +174,20 @@ const Builtins = {
       } catch (e) {
         console.error(e.message);
         throw e;
+      }
+    },
+  },
+  Cmd: {
+    // run in scope
+    run: (ctx, [code]) => {
+      try {
+        let newCtx = ctx.newChildContext();
+        newCtx.pushCode(code);
+        newCtx.tokenizeCode();
+        let result = newCtx.exec() || "";
+        return result;
+      } catch (e) {
+        console.error(e);
       }
     },
   },
@@ -184,6 +212,14 @@ Builtins.List = {
 // /** @type {{locales: Object.<string, Method>}} */
 const BuiltinMethods = [
   new Method(
+    "run",
+    Statics.Cmd,
+    Statics.STRING,
+    Builtins.Cmd.run,
+    ArityType.SINGLE,
+    1
+  ),
+  new Method(
     "glob",
     Statics.FILE,
     Statics.LIST,
@@ -198,6 +234,14 @@ const BuiltinMethods = [
     Builtins.File.write,
     ArityType.STRICT,
     2
+  ),
+  new Method(
+    "read",
+    Statics.FILE,
+    Statics.STRING,
+    Builtins.File.read,
+    ArityType.STRICT,
+    1
   ),
   new Method(
     "join",
@@ -237,6 +281,15 @@ const BuiltinMethods = [
         jsTranslatedStrToStrMethods[jsName].arityType,
         jsTranslatedStrToStrMethods[jsName].arity
       )
+  ),
+
+  new Method(
+    "set",
+    Statics.STRING,
+    Statics.STRING,
+    Builtins.String.set,
+    ArityType.SINGLE,
+    1
   ),
 
   // include all string methods as mappers on list

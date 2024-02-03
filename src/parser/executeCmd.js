@@ -9,10 +9,33 @@ const { ParserContext } = require("./paserContext");
  **/
 function executeCmd(cmdTokens = [], ctx) {
   let isVarDeclaration = cmdTokens[0].type === TokenType.TYPE;
+  let result;
   if (isVarDeclaration) {
-    execVarDeclaration(cmdTokens, ctx);
+    result = execVarDeclaration(cmdTokens, ctx);
   } else {
-    exec(cmdTokens, ctx);
+    result = exec(cmdTokens, ctx);
+  }
+
+  if (result.value) {
+    return Array.isArray(result.value)
+      ? result.value.join()
+      : result.value.slice(1, -1);
+  }
+
+  if (result.type === TokenType.VARIABLE) {
+    result = execArg(result);
+  }
+
+  if (result.type === TokenType.REFINEDLIST) {
+    return result.children.join();
+  } else if (result.type === TokenType.STRING) {
+    return result.text.slice(1, -1);
+  } else {
+    throw new Error(
+      `Unexpected Execution Return type ${result.TYPE} on ${JSON.stringify(
+        result
+      )}`
+    );
   }
 }
 
@@ -79,9 +102,13 @@ function execArg(arg, ctx) {
     case TokenType.VARIABLE: {
       let variable = ctx.variables.find((v) => v.name === arg.text);
       if (!variable) throw new Error(`Undefined variable: ${arg.text}`);
-      if (variable.type === VariableType.LIST)
-        return new ParserToken(TokenType.REFINEDLIST, arg.text, variable.value);
-      else return new ParserToken(TokenType.STRING, variable.value);
+      let result =
+        variable.type === VariableType.LIST
+          ? new ParserToken(TokenType.REFINEDLIST, arg.text, variable.value)
+          : new ParserToken(TokenType.STRING, variable.value);
+      result.variableToken = arg;
+      result.variable = variable;
+      return result;
     }
     case TokenType.STRING:
       return new ParserToken(TokenType.REFINEDLIST, arg.text, [
@@ -127,7 +154,7 @@ function execVarDeclaration(cmdTokens = [], ctx) {
       throw new Error(`Unexpected result token ${resultToken.type}`);
     }
   }
-  ctx.variables.push(newVar);
+  ctx.variables.unshift(newVar);
   return newVar;
 }
 
@@ -190,7 +217,8 @@ function getMethod(subjectType, methodName, methods = BuiltinMethods) {
   let meth = methods.find(
     (m) => m.bindType === subjectType && m.name === methodName
   );
-  if (!meth) throw new Error("Undefined Method");
+  if (!meth)
+    throw new Error(`Undefined Method ${methodName} on ${subjectType}`);
   return meth;
 }
 

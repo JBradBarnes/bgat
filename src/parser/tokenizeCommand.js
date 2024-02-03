@@ -137,6 +137,8 @@ class ParserToken {
     this.type = typ;
     this.text = text;
     this.children = children;
+    this.variable = null;
+    this.variableToken = null;
   }
 }
 

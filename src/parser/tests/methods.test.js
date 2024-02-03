@@ -9,7 +9,3 @@ test("Globs should load filenames", () => {
   let files = Builtins.File.glob(ctx, ["*.bgat"]);
   expect(files?.length).toBeTruthy();
 });
-
-// test("Should have methods", () => {
-//   expect(snakeCaseStrToStr.includes("replace_all")).toBeTruthy();
-// });
