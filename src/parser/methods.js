@@ -240,17 +240,18 @@ Builtins.List = {
         index + "",
         ["$2"]
       );
+      let subVar = ctx.subject.variable;
       let params = [
-        {
-          ...ctx.subject.variable,
-          name: "$subject",
-          alias: [...ctx.subject.variable.alias, "$3"],
-        },
+        new VariableContext(subVar.type, "$subject", subVar.value, [
+          ...ctx.subject.variable.alias,
+          "$3",
+        ]),
         resCtx,
         itCtx,
         inCtx,
       ];
-      resCtx.value.push(Builtins.Cmd.run(ctx, [code], params));
+      let runResult = Builtins.Cmd.run(ctx, [code], params);
+      resCtx.value.push(runResult);
     });
     return resCtx.value;
   },

@@ -194,9 +194,15 @@ function execMethod(
       refinedArg.children
     );
 
+    let tokenVal = newTokenTyp === TokenType.REFINEDLIST ? text : `"${value}"`;
+
+    let runVal = ctx.getRunVarCtx();
+    runVal.value = tokenVal;
+    runVal.type = newTokenTyp;
+
     let newToken = new ParserToken(
       newTokenTyp,
-      newTokenTyp === TokenType.REFINEDLIST ? text : `"${value}"`,
+      tokenVal,
       newTokenTyp === TokenType.REFINEDLIST ? value : undefined
     );
 
@@ -239,16 +245,10 @@ function getMethodTypeFromToken(token, ctx) {
       return token.text;
     }
     case TokenType.STRING: {
-      let runCtx = ctx.getRunVarCtx();
-      runCtx.value = token.text.slice(1, -1);
-      runCtx.type = VariableType.BUFFER;
-      return runCtx.value;
+      return Statics.STRING;
     }
     case TokenType.REFINEDLIST: {
-      let runCtx = ctx.getRunVarCtx();
-      runCtx.value = token.children;
-      runCtx.type = VariableType.LIST;
-      return runCtx.value;
+      return Statics.LIST;
     }
     default: {
       throw new Error(

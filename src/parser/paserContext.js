@@ -69,10 +69,8 @@ class ParserContext {
       "$__current__",
       ""
     );
-    this.variables.push(runVarCtx);
-    for (let { name, value } of params) {
-      this.variables.push(new VariableContext(VariableType.PARAM, name, value));
-    }
+    this.variables.unshift(runVarCtx);
+    this.variables.unshift(...params);
     let result = "";
     for (let cmd of this.commandTokens) {
       result = executeCmd(cmd, this);
