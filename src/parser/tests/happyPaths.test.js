@@ -168,11 +168,16 @@ test("template works", () => {
   testFile(filename, "item:1 index:0");
 });
 
-// const mapList = `
-// list $list from ("0","1","2","3")
-// File.write("${filename}", $list.map(\`item:{$item} index:$index\`).join("\n"))
-// `;
-// test("list cmd map works", () => {
-//   runCode(mapList);
-//   testFile(filename, runAdd);
-// });
+const mapList = `
+list $list from ("1","2","3")
+File.write("${filename}", $list.map("\`item:{$item} index:{$index}\`").join("\n"))
+`;
+test("list cmd map works", () => {
+  runCode(mapList);
+  testFile(
+    filename,
+    `item:1 index:0
+item:2 index:1
+item:3 index:2`
+  );
+});
