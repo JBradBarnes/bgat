@@ -159,7 +159,7 @@ const Builtins = {
       if (!filename) console.error("Method Requires an argument");
       console.log("ctx.root ", path.resolve(ctx.root, filename));
       let filePath = path.resolve(ctx.root, filename);
-      let content = fs.readFileSync(filePath);
+      let content = fs.readFileSync(filePath, "utf-8");
       return content || "";
     },
     glob: (ctx, [glob]) => {
