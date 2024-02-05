@@ -158,15 +158,15 @@ test("chaining works", () => {
   testFile(filename, "this.index:1");
 });
 
-// const templateTest = `
-// buf $item from "1"
-// buf $index from "0"
-// File.write ("${filename}", \`item:{$item} index:$index\`)
-// `;
-// test("template works", () => {
-//   runCode(templateTest);
-//   testFile(filename, runAdd);
-// });
+const templateTest = `
+buf $item from "1"
+ buf $index from "0"
+File.write ("${filename}", \`item:{$item} index:{$index}\`)
+`;
+test("template works", () => {
+  runCode(templateTest);
+  testFile(filename, "item:1 index:0");
+});
 
 // const mapList = `
 // list $list from ("0","1","2","3")

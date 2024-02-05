@@ -164,7 +164,7 @@ function identifyToken(txt, ctx, isInExpression = false) {
     token = new ParserToken(
       TokenType.TEMPLATE,
       txt,
-      templateTokenizer(txt, ctx)
+      templateTokenizer(txt.slice(1, -1), ctx)
     );
     // list
   } else if (txt[0] === "(") {

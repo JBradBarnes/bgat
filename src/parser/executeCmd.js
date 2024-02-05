@@ -29,7 +29,7 @@ function executeCmd(cmdTokens = [], ctx) {
   } else if (result.type === TokenType.STRING) {
     return result.text;
   } else if (result === TokenType.TEMPLATE) {
-    execTemplate(result);
+    execTemplate(result, ctx);
   } else {
     throw new Error(
       `Unexpected Execution Return type ${result.TYPE} on ${JSON.stringify(
@@ -66,6 +66,12 @@ function exec(cmdTokensProp = [], ctx) {
     }
   };
 
+  while (cmdTokens[0]?.type == TokenType.TEMPLATE) {
+    let template = cmdTokens.shift();
+    let newToken = execTemplate(template.children, ctx);
+    cmdTokens.unshift(newToken);
+  }
+
   if (checkFirst()) {
     if (cmdTokens.length === 1)
       if (cmdTokens[0].type === TokenType.VARIABLE) {
@@ -88,11 +94,14 @@ function exec(cmdTokensProp = [], ctx) {
     }
     subject = execMethod([subject, methodToken, arg], ctx);
   }
+
   if (cmdTokens.length)
     throw new Error(
-      `Tokens left that did not bind to a method \n ${JSON.stringify(
-        cmdTokens
-      )}`
+      `Tokens left that did not bind to a method
+      line:${ctx.line}
+      location:${ctx.lineLocation}
+      ${ctx.commands[cmdTokens[0].line]}
+      ${JSON.stringify(cmdTokens)}`
     );
   return subject;
 }
@@ -275,6 +284,8 @@ function execList(children = [], ctx) {
       refinedListToken.children.push(child.text);
     else if (child.type === TokenType.REFINEDLIST)
       refinedListToken.children.push(child.children);
+    else if (child.type === TokenType.TEMPLATE)
+      execTemplate(child.children, ctx);
     else if (Array.isArray(child)) {
       let childToken = exec(child, ctx);
       if (childToken.type === TokenType.REFINEDLIST)
@@ -307,10 +318,10 @@ function execList(children = [], ctx) {
 function execTemplate(children = [], ctx) {
   let strToken = new ParserToken(TokenType.STRING, "");
   for (let child of children) {
-    if (child.type === TokenType.string) strToken += child.text;
+    if (typeof child === "string") strToken.text += child;
     else if (Array.isArray(child)) {
       let childValue = exec(child, ctx).text;
-      strToken += childValue;
+      strToken.text += childValue;
     } else {
       throw new Error(
         "Parser recieved template child that was not string or array of tokens. TBD catch in type checking."
