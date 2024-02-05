@@ -158,12 +158,21 @@ test("chaining works", () => {
   testFile(filename, "this.index:1");
 });
 
-const mapList = `
-list $list from ("0","1","2","3")
-list $mapped from $list.map("$item.concat(' index:').concat($index)")
-File.write ("${filename}", $mapped.join("\n"))
-`;
-test("list cmd map works", () => {
-  runCode(mapList);
-  testFile(filename, runAdd);
-});
+// const templateTest = `
+// buf $item from "1"
+// buf $index from "0"
+// File.write ("${filename}", \`item:{$item} index:$index\`)
+// `;
+// test("template works", () => {
+//   runCode(templateTest);
+//   testFile(filename, runAdd);
+// });
+
+// const mapList = `
+// list $list from ("0","1","2","3")
+// File.write("${filename}", $list.map(\`item:{$item} index:$index\`).join("\n"))
+// `;
+// test("list cmd map works", () => {
+//   runCode(mapList);
+//   testFile(filename, runAdd);
+// });

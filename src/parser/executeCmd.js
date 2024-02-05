@@ -17,9 +17,7 @@ function executeCmd(cmdTokens = [], ctx) {
   }
 
   if (result.value) {
-    return Array.isArray(result.value)
-      ? result.value.join()
-      : result.value.slice(1, -1);
+    return Array.isArray(result.value) ? result.value.join() : result.value;
   }
 
   if (result.type === TokenType.VARIABLE) {
@@ -29,7 +27,9 @@ function executeCmd(cmdTokens = [], ctx) {
   if (result.type === TokenType.REFINEDLIST) {
     return result.children.join();
   } else if (result.type === TokenType.STRING) {
-    return result.text.slice(1, -1);
+    return result.text;
+  } else if (result === TokenType.TEMPLATE) {
+    execTemplate(result);
   } else {
     throw new Error(
       `Unexpected Execution Return type ${result.TYPE} on ${JSON.stringify(
@@ -89,7 +89,11 @@ function exec(cmdTokensProp = [], ctx) {
     subject = execMethod([subject, methodToken, arg], ctx);
   }
   if (cmdTokens.length)
-    throw new Error(`Tokens left that did not bind to a method`);
+    throw new Error(
+      `Tokens left that did not bind to a method \n ${JSON.stringify(
+        cmdTokens
+      )}`
+    );
   return subject;
 }
 
@@ -111,9 +115,7 @@ function execArg(arg, ctx) {
       return result;
     }
     case TokenType.STRING:
-      return new ParserToken(TokenType.REFINEDLIST, arg.text, [
-        arg.text.slice(1, -1),
-      ]);
+      return new ParserToken(TokenType.REFINEDLIST, arg.text, [arg.text]);
     case TokenType.TEMPLATE:
       return new ParserToken(TokenType.REFINEDLIST, arg.text, [
         execTemplate(arg.children, ctx),
@@ -194,7 +196,7 @@ function execMethod(
       refinedArg.children
     );
 
-    let tokenVal = newTokenTyp === TokenType.REFINEDLIST ? text : `"${value}"`;
+    let tokenVal = newTokenTyp === TokenType.REFINEDLIST ? text : value;
 
     let runVal = ctx.getRunVarCtx();
     runVal.value = tokenVal;
@@ -209,7 +211,11 @@ function execMethod(
     return newToken;
   } catch (e) {
     throw new Error(
-      `Issue in method execution ${subject.text}.${methodName}\n${e.messge}`
+      `Issue in method execution ${subject.text}.${methodName}
+      line:${methodToken.line}
+      location:${methodToken.lineLocation}
+      ${ctx.commands[methodToken.line]}
+      msg: ${e.messge}`
     );
   }
 }
@@ -266,7 +272,7 @@ function execList(children = [], ctx) {
   let refinedListToken = new ParserToken(TokenType.REFINEDLIST, "", []);
   for (let child of children) {
     if (child.type === TokenType.STRING)
-      refinedListToken.children.push(child.text.slice(1, -1));
+      refinedListToken.children.push(child.text);
     else if (child.type === TokenType.REFINEDLIST)
       refinedListToken.children.push(child.children);
     else if (Array.isArray(child)) {
@@ -274,13 +280,11 @@ function execList(children = [], ctx) {
       if (childToken.type === TokenType.REFINEDLIST)
         refinedListToken.children.push(...childToken.children);
       else if (childToken.type === TokenType.STRING)
-        refinedListToken.children.push(childToken.text.slice(1, -1));
+        refinedListToken.children.push(childToken.text);
       else if (childToken.type === TokenType.VARIABLE) {
         let token = execArg(childToken, ctx);
         let values =
-          token.type === TokenType.STRING
-            ? [token.text.slice(1, -1)]
-            : token.children;
+          token.type === TokenType.STRING ? [token.text] : token.children;
         refinedListToken.children.push(...values);
       } else {
         throw new Error(

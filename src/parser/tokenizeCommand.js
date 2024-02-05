@@ -21,6 +21,7 @@ function tokenize(cmd, ctx = {}) {
     buildNestLevel = 0;
   };
 
+  let lineLocation = 0;
   tokensText = tokensText.filter((x) => x);
   let tokens = [];
   for (let txt of tokensText) {
@@ -51,11 +52,14 @@ function tokenize(cmd, ctx = {}) {
     if (buildCase) continue;
     try {
       let token = identifyToken(text.trim(), ctx);
+      token.lineLocation = lineLocation;
+      token.line = ctx.line;
       tokens.push(token);
     } catch (e) {
       if (ctx.line === null) throw e;
       throw new Error(`line: ${ctx.line} ${cmd} \n` + e.message);
     }
+    lineLocation += txt.length;
   }
   return tokens;
 }
@@ -178,13 +182,13 @@ function identifyToken(txt, ctx, isInExpression = false) {
       throw new Error(
         "Unclosed template string. (`) expected. \n token: " + txt
       );
-    token = new ParserToken(TokenType.STRING, txt);
+    token = new ParserToken(TokenType.STRING, txt.slice(1, -1));
   } else if (txt[0] === '"') {
     if (txt[txt.length - 1] != '"')
       throw new Error(
         'Unclosed template string. (") expected. \ntoken: ' + txt
       );
-    token = new ParserToken(TokenType.STRING, txt);
+    token = new ParserToken(TokenType.STRING, txt.slice(1, -1));
   } else if (txt[0] === "$") {
     token = new ParserToken(TokenType.VARIABLE, txt);
   } else if (Object.values(BehaviorTypes).includes(txt)) {

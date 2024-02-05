@@ -64,12 +64,12 @@ class ParserContext {
   };
   exec = (params = []) => {
     if (!this.isChild) this.clearExecCtx();
-    let runVarCtx = new VariableContext(
+    this.runVarCtx = new VariableContext(
       VariableType.BUFFER,
       "$__current__",
       ""
     );
-    this.variables.unshift(runVarCtx);
+    this.variables.unshift(this.runVarCtx);
     this.variables.unshift(...params);
     let result = "";
     for (let cmd of this.commandTokens) {

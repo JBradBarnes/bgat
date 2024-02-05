@@ -104,21 +104,18 @@ const jsTranslatedStrToStrMethodNames = Object.keys(
 const toRegexName = (name) => `regex_${name}`;
 
 const strToStr = (name) => (ctx, args) => {
-  return (ctx.subject?.text.slice(1, -1) || "")[name](...args) + "";
+  return (ctx.subject?.text || "")[name](...args) + "";
 };
 
 const regexStrToStr =
   (name) =>
   (ctx, [arg1, ...args]) => {
-    return (
-      (ctx.subject?.text.slice(1, -1) || "")[name](new RegExp(arg1), ...args) +
-      ""
-    );
+    return (ctx.subject?.text || "")[name](new RegExp(arg1), ...args) + "";
   };
 
 const mapperToStringMethod = (name) => (ctx, args) => {
   let result = ctx.subject.children.flatMap((child) => {
-    let strSubject = new ParserToken(TokenType.STRING, `"${child}"`);
+    let strSubject = new ParserToken(TokenType.STRING, child);
     return BuiltinMethods.String[name]({ ...ctx, subject: strSubject }, args);
   });
   return result;
@@ -145,7 +142,7 @@ const Builtins = {
     set: (ctx, [value]) => {
       if (!ctx.subject.variable)
         throw new TypeError("set can only be used on a variable");
-      ctx.subject.variable.value = `"${value}"`;
+      ctx.subject.variable.value = value;
       return value;
     },
   },
@@ -229,7 +226,7 @@ Builtins.List = {
     ])
   ),
   map: (ctx, [code]) => {
-    let resCtx = new VariableContext(VariableType.LIST, "result", [], ["$4"]);
+    let resCtx = new VariableContext(VariableType.LIST, "$result", [], ["$4"]);
     ctx.subject.children.forEach((item, index) => {
       let itCtx = new VariableContext(VariableType.PARAM, "$item", item, [
         "$1",
