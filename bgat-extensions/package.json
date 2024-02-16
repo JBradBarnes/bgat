@@ -1,0 +1,41 @@
+{
+  "name": "bgat-extensions",
+  "displayName": "bgat",
+  "description": "Language support for bgat",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.0.0"
+  },
+  "scripts": {
+    "build": "npx vsce package"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:bgat"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "bgat",
+        "aliases": [
+          "begat"
+        ],
+        "extensions": [
+          ".bgat"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "bgat",
+        "scopeName": "source.bgat",
+        "path": "./TextMateGrammer.json"
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-languageserver": "^9.0.1"
+  }
+}

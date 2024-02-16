@@ -8,7 +8,9 @@ buf $types_template from `export type TilemapPath = "{$joined}";`
 
 buf $cjoined from $tilemaps.join('" \n"')
 
-File.write("generated/tilemapsTypes.ts", `// env - {$env}
+File.write(
+"generated/tilemapsTypes.ts", 
+`// env - {$env}
 {$types_template}
 export const tilemaps: TilemapPath[] = [
 "{$cjoined}"

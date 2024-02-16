@@ -1,0 +1,136 @@
+{
+  "scopeName": "source.bgat",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#variables"
+    },
+    {
+      "include": "#lists"
+    },
+    {
+      "include": "#methods"
+    },
+    {
+      "include": "#statics"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "//.*$",
+          "name": "comment.line.double-slash"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "begin": "`",
+          "end": "`",
+          "name": "string.template",
+          "patterns": [
+            {
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "name": "string.template.expression",
+              "patterns": [
+                {
+                  "include": "#expressions"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "match": "'[^']*'",
+          "name": "string.single"
+        },
+        {
+          "match": "\"[^\"]*\"",
+          "name": "string.double"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(?:param|buf|const|list)\\b",
+          "name": "keyword"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "match": "\\$\\w+",
+          "name": "variable"
+        }
+      ]
+    },
+    "lists": {
+      "patterns": [
+        {
+          "begin": "\\(",
+          "end": "\\)",
+          "name": "list",
+          "patterns": [
+            {
+              "include": "#expressions"
+            }
+          ]
+        }
+      ]
+    },
+    "methods": {
+      "patterns": [
+        {
+          "match": "\\w+\\.",
+          "name": "method"
+        }
+      ]
+    },
+    "statics": {
+      "patterns": [
+        {
+          "match": "\\b(?:List|File|Cmd|String)\\b",
+          "name": "static"
+        }
+      ]
+    },
+    "expressions": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#variables"
+        },
+        {
+          "include": "#lists"
+        },
+        {
+          "include": "#methods"
+        },
+        {
+          "include": "#statics"
+        }
+      ]
+    }
+  }
+}
