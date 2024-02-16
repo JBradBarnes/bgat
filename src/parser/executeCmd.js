@@ -146,9 +146,13 @@ function execArg(arg, ctx) {
  * @param {ParserContext} ctx - The name of the method.
  **/
 function execVarDeclaration(cmdTokens = [], ctx) {
+  let varType = cmdTokens[0].text;
+  let varName = cmdTokens[1].text;
+  let preExistingVar = ctx.getVariableCtx(varName, false);
+  if (varType === "param" && preExistingVar) return preExistingVar;
   let newVar = new VariableContext(
-    cmdTokens[0].text,
-    cmdTokens[1].text,
+    varType,
+    varName,
     cmdTokens[0].type === VariableType.LIST ? [] : ""
   );
   if (cmdTokens.length > 3) {
@@ -224,7 +228,7 @@ function execMethod(
       line:${methodToken.line}
       location:${methodToken.lineLocation}
       ${ctx.commands[methodToken.line]}
-      msg: ${e.messge}`
+      msg: ${e.message}`
     );
   }
 }

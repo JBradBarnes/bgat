@@ -1,0 +1,2 @@
+param $content
+File.write("testfile.txt", $content)

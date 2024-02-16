@@ -4,7 +4,7 @@ const {
   Statics,
   TokenType,
 } = require("./tokenizeCommand");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 const { execSync } = require("child_process");
 const { VariableContext, VariableType } = require("./variableContext");
@@ -150,8 +150,11 @@ const Builtins = {
     write: (ctx, [filename, content]) => {
       // need to abstract arity errors
       if (!content || !filename) console.error("Method Requires Two arguments");
-      let filePath = path.resolve(ctx.root, filename);
-      fs.writeFileSync(filePath, content);
+      let filePath = path.resolve(ctx.output || ctx.root, filename);
+      console.info("Writing to: " + filePath);
+      console.info("Content: " + content.slice(0, 100) + "...");
+      fs.ensureDirSync(path.dirname(filePath));
+      fs.writeFileSync(filePath, content, "utf-8");
       return content || "";
     },
     read: (ctx, [filename]) => {

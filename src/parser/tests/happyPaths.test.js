@@ -137,6 +137,14 @@ test("does run code", () => {
   testFile(filename, runAdd);
 });
 
+const cliShell = `
+Cmd.shell("bgat --entry tilemaps --root ${__dirname}/../../../examples/typescript_scenes")
+`;
+
+test("does run cli", () => {
+  runCode(cliShell);
+});
+
 const writeWithShell = `
 buf $file from "${fileContent}"
 $file.set(Cmd.shell("echo '${runAdd}'"))

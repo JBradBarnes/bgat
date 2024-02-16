@@ -1,15 +1,15 @@
 param $env default `dev`
-cmd `echo env - ${$env}`
+//Cmd.shell(`echo env - {$env}`)
 
-list $tilemaps from glob `**/tilemaps/**.tmx`
+list $tilemaps from File.glob(`**/tilemaps/**.tmx`)
 
-buf $types_template
-$types_template.push `export type TilemapPath = `
-$types_template.push $tilemaps.join `| \n`
+buf $joined from $tilemaps.join('"| \n"')
+buf $types_template from `export type TilemapPath = "{$joined}";`
 
-buf $manifest_template
-$manifest_template.push `export const tilemaps: TilemapPath = [`
-$manifest_template.push $tilemaps.join `| \n`
-$manifest_template.push `];`
+buf $cjoined from $tilemaps.join('" \n"')
 
-write `// env - {$env}\n {$types_template} \n {$manifest_template}` to file `generated/tilemaps.ts`
+File.write("generated/tilemapsTypes.ts", `// env - {$env}
+{$types_template}
+export const tilemaps: TilemapPath[] = [
+"{$cjoined}"
+];`)
