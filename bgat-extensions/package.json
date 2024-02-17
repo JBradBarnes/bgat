@@ -7,7 +7,9 @@
     "vscode": "^1.0.0"
   },
   "scripts": {
-    "build": "npx vsce package"
+    "build": "npx vsce package",
+    "test": "jest",
+    "jest:watch": "jest --watch"
   },
   "categories": [
     "Programming Languages"
@@ -36,6 +38,14 @@
     ]
   },
   "dependencies": {
+    "vscode": "^1.1.37",
     "vscode-languageserver": "^9.0.1"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "vscode-test": "^1.6.1"
   }
 }

@@ -7,8 +7,6 @@ todo:
 regex
 params
 
-Certainly! Below is a revised version of the documentation focusing on command-line usage and providing examples using the language itself:
-
 Templating/Manifesting Language Documentation
 Introduction
 This documentation provides an overview of a templating and manifesting language designed for command-line execution. The language simplifies file manipulation and code generation through a set of built-in methods. This tool is intended for use in a command-line environment.
