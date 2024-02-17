@@ -8,6 +8,8 @@
   },
   "main": "./extension.js",
   "scripts": {
+    "prebuild": "npm run copy-source",
+    "copy-source": "cpy -r ./path/to/source/folder/** ./node_modules/your-package-name",
     "build": "npx vsce package",
     "test": "jest",
     "jest:watch": "jest --watch"
@@ -39,7 +41,8 @@
     ]
   },
   "dependencies": {
-    "vscode-languageserver": "^9.0.1"
+    "vscode-languageserver": "^9.0.1",
+    "bgat-exports": "file:../exports.js"
   },
   "jest": {
     "testEnvironment": "node"

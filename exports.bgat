@@ -1,0 +1,13 @@
+list $filenames from File.glob("src/parser/**/*.js")
+list $filtered from $filenames.filter_out_regex('test')
+list $setters from $filtered.map('$item.replace(".js","").replace_all("/", ".").concat(" = ").concat(`require("./`).concat($item).concat(`")`)')
+buf $formated from $setters.join(`; 
+`)
+
+File.write("exports.js", `const src = {};
+src.parser = {};
+
+{$formated}
+
+module.exports = src;
+`)

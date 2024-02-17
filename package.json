@@ -1,14 +1,19 @@
 {
   "name": "bgat",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "An attempt at functionaly data-driven code generation",
   "main": "index.js",
+  "exports": {
+    "./exports.js": "./exports.js"
+  },
   "bin": {
     "bgat": "./index.js"
   },
   "scripts": {
     "test": "jest",
-    "jest:watch": "jest --watch"
+    "jest:watch": "jest --watch",
+    "gen-exports": "bgat --entry exports.bgat",
+    "preinstall": "npm run gen-exports"
   },
   "repository": {
     "type": "git",

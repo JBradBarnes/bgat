@@ -255,6 +255,16 @@ Builtins.List = {
     });
     return resCtx.value;
   },
+  filter_regex: (ctx, [reg]) => {
+    let regex = new RegExp(reg);
+    result = ctx.subject.children.filter((child) => regex.test(child));
+    return result;
+  },
+  filter_out_regex: (ctx, [reg]) => {
+    let regex = new RegExp(reg);
+    result = ctx.subject.children.filter((child) => !regex.test(child));
+    return result;
+  },
 };
 
 // /** @type {{locales: Object.<string, Method>}} */
@@ -298,6 +308,20 @@ const BuiltinMethods = [
     Builtins.File.read,
     ArityType.STRICT,
     1
+  ),
+  new Method(
+    "filter_regex",
+    Statics.LIST,
+    Statics.LIST,
+    Builtins.List.filter_regex,
+    ArityType.SINGLE
+  ),
+  new Method(
+    "filter_out_regex",
+    Statics.LIST,
+    Statics.LIST,
+    Builtins.List.filter_out_regex,
+    ArityType.SINGLE
   ),
   new Method(
     "join",

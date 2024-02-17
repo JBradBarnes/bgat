@@ -189,3 +189,12 @@ item:2 index:1
 item:3 index:2`
   );
 });
+
+const filterRegList = `
+list $list from ("1","2","3")
+File.write("${filename}", $list.filter_regex("1").join("\n"))
+`;
+test("list cmd filter regex works", () => {
+  runCode(filterRegList);
+  testFile(filename, `1`);
+});

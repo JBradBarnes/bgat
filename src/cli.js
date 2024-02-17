@@ -43,7 +43,7 @@ const argv = yargs
 
 let entries = argv["entry"]?.map((e) => {
   let extension = ".bgat";
-  if (e.slice(-4) !== extension) return e + extension;
+  if (e.slice(-5, e.length) !== extension) return e + extension;
   return e;
 });
 let params = argv["parameter"] || [];
