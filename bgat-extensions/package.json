@@ -6,6 +6,7 @@
   "engines": {
     "vscode": "^1.0.0"
   },
+  "main": "./extension.js",
   "scripts": {
     "build": "npx vsce package",
     "test": "jest",
@@ -38,7 +39,6 @@
     ]
   },
   "dependencies": {
-    "vscode": "^1.1.37",
     "vscode-languageserver": "^9.0.1"
   },
   "jest": {
@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "vscode-test": "^1.6.1"
+    "vscode-test": "^1.6.1",
+    "vscode": "^1.1.37"
   }
 }
