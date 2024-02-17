@@ -36,6 +36,7 @@ describe("Bgat Completion Provider Tests", () => {
 
   test("Should provide completions for static methods in brackets", async () => {
     global.textDocument.content = "$str.replace(File.wr";
+    global.editor.selection.active = global.textDocument.content.length - 1;
     // Your test code
     const { completions } = await setup();
 

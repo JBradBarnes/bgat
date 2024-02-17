@@ -10,13 +10,18 @@ global.editor.reset = () =>
 global.editor.reset();
 
 global.textDocument = {};
+global.textDocument.lineAt = (num = 0) => {
+  let slice = global.textDocument.content.slice(0, num);
+  let lineNum = slice.split("\n").length;
+  let lines = global.textDocument.content.split("\n");
+  return {
+    text: lines[lineNum - 1] || "",
+  };
+};
 global.textDocument.reset = () =>
   Object.assign(global.textDocument, {
     content: "",
     language: "bgat",
-    lineAt: (num = 0) => ({
-      text: global.textDocument.content.split("\n")[num],
-    }),
   });
 global.textDocument.reset();
 

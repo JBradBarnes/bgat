@@ -5,45 +5,42 @@ const { Statics } = require("../src/parser/tokenizeCommand");
 class BgatCompletionProvider {
   provideCompletionItems(document, position, token, context) {
     const line = document.lineAt(position).text;
-    const prefix = this.extractWordPrefix(line, position.character);
+    const prefix = this.extractWordPrefix(line);
     return this.getSuggestions(prefix);
   }
 
-  extractWordPrefix(line, position) {
+  extractWordPrefix(line) {
     // Starting from the current position, move backward to find the start of the word
-    let start = position - 1;
+    let start = line.length - 1;
     while (start >= 0 && this.isWordCharacter(line[start])) {
       start--;
     }
 
     // Extract the word from the line
-    const word = line.slice(start + 1, position);
+    const word = line.slice(start + 1);
     return word;
   }
 
   isWordCharacter(char) {
     // Define the characters that are considered part of a word
-    const wordCharacters = /[a-zA-Z0-9_]/;
+    const wordCharacters = /[a-zA-Z0-9_\.]/;
     return wordCharacters.test(char);
   }
 
   getSuggestions(prefix) {
     // Implement your logic to get suggestions based on the extracted word
     // For example, you can filter your static methods or names starting with the given word
-    const possibleStatics = Object.values(Statics).filter((s) =>
-      s.startsWith(prefix)
+    const possibleStatics = this.filterByPrefix(Object.values(Statics), prefix);
+    const possibleStaticMethods = this.filterByPrefix(
+      BuiltinMethods.map(({ name, bindType }) => `${bindType}.${name}`),
+      prefix
     );
-    const possibleStaticMethods =
-      prefix.indexOf(".") !== -1
-        ? BuiltinMethods.map(
-            ({ name, bindType }) => `${bindType}.${name}`
-          ).filter((str) => str.startsWith(prefix))
-        : [];
-    return [
-      ...possibleStatics,
-      ...possibleStaticMethods,
-      // ...possibleImplementations
-    ];
+
+    return [...possibleStatics, ...possibleStaticMethods];
+  }
+
+  filterByPrefix(array, prefix) {
+    return array.filter((item) => item.startsWith(prefix));
   }
 }
 
