@@ -8,8 +8,7 @@
   },
   "main": "./extension.js",
   "scripts": {
-    "prebuild": "npm run copy-source",
-    "copy-source": "cp -r ../** ./node_modules/bgat-exports",
+    "prebuild": "webpack --config webpack.config.js",
     "build": "npx vsce package",
     "test": "jest",
     "jest:watch": "jest --watch"
@@ -48,7 +47,9 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "vscode": "^1.1.37",
     "vscode-test": "^1.6.1",
-    "vscode": "^1.1.37"
+    "webpack": "^5.90.2",
+    "webpack-cli": "^5.1.4"
   }
 }
