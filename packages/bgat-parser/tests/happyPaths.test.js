@@ -138,7 +138,7 @@ test("does run code", () => {
 });
 
 const cliShell = `
-Cmd.shell("bgat --entry tilemaps --root ${__dirname}/../../../examples/typescript_scenes")
+Cmd.shell("bgat --entry tilemaps --root ${__dirname}/../../../packages/examples/typescript_scenes")
 `;
 
 test("does run cli", () => {

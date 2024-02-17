@@ -1,18 +1,15 @@
 {
-  "name": "bgat",
+  "name": "bgat-cli",
   "version": "0.0.1",
   "description": "An attempt at functionaly data-driven code generation",
   "main": "index.js",
   "bin": {
     "bgat": "./index.js"
   },
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "test": "jest",
     "jest:watch": "jest --watch",
-    "gen-exports": "bgat --entry exports.bgat --root ./packages/bgat-parser",
+    "gen-exports": "bgat --entry exports.bgat",
     "copy-exports": "node ./exportCopyScript.js"
   },
   "repository": {
@@ -36,7 +33,7 @@
   "jest": {
     "testEnvironment": "node",
     "testMatch": [
-      "<rootDir>/packages/**/*.test.js"
+      "<rootDir>/src/**/*.test.js"
     ]
   }
 }

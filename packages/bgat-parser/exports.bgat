@@ -1,0 +1,16 @@
+list $filenames from File.glob("**/*.js")
+list $filtered from $filenames.filter_out_regex('test|export')
+//buf $print from $filtered.join("")
+//Cmd.shell(`echo {$print}`)
+list $setters from $filtered.map('$item.replace(".js","").replace_all("/", ".").concat(" = ").concat(`require("./`).concat($item).concat(`")`)')
+buf $formated from $setters.join(`; 
+`)
+
+File.write("exports.js", `const parser = {};
+
+{$formated}
+
+module.exports = src;
+`)
+
+//Cmd.shell("npm run copy-exports")
