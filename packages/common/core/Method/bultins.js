@@ -1,5 +1,5 @@
 const { globSync } = require("glob");
-const { Statics, TokenType } = require("../Token/types");
+const { TokenType } = require("../Token/types");
 const fs = require("fs-extra");
 const path = require("path");
 const { execSync } = require("child_process");

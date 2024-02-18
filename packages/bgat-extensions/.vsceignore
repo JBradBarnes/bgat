@@ -1,6 +1,7 @@
 # Ignore everything
 
 \*
+.git
 
 # Include only the contents of the out folder
 
