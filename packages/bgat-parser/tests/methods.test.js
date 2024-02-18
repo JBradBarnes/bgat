@@ -1,4 +1,4 @@
-const { Builtins } = require("../methods");
+const { Builtins } = require("common/core/Method/bultins");
 const { ParserContext } = require("../paserContext");
 
 const mockContext = new ParserContext();

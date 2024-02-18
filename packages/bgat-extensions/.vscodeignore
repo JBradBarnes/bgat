@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# Include only the contents of the out folder
+!out/
+!out/**
+!TextMateGrammer.json

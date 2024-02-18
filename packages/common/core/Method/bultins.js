@@ -1,65 +1,11 @@
 const { globSync } = require("glob");
-const {
-  BehaviorTypes: Types,
-  Statics,
-  TokenType,
-} = require("./tokenizeCommand");
+const { Statics, TokenType } = require("../Token/types");
 const fs = require("fs-extra");
 const path = require("path");
 const { execSync } = require("child_process");
-const { VariableContext, VariableType } = require("./variableContext");
-
-/**
- * Represents a method.
- * @class
- */
-class Method {
-  /**
-   * Creates an instance of Method.
-   * @param {string} name - The name of the method.
-   * @param {Statics} bindType - The bind type.
-   * @param {Statics["LIST"] | Statics["STRING"]} returnType - The return type.
-   * @param {Function} impl - The implementation function.
-   * @param {number} [arity=0] - The arity of the method (optional, default is 0).
-   * @param {string} [arityType="strict"] - The arity of the method (optional, default is 0).
-   * @param {boolean} [mutable=true] - This changes parent.
-   *
-   */
-  constructor(
-    name,
-    bindType,
-    returnType,
-    impl,
-    arityType = ArityType.NONE,
-    arity = 0,
-    mutable = false
-  ) {
-    this.name = name;
-    this.bindType = bindType;
-    this.returnType = returnType;
-    this.arity = arity;
-    this.arityType = arityType;
-    this.impl = impl;
-    this.mutable = mutable;
-  }
-}
-
-/**
- * Arity types.
- * @enum {string}
- */
-const ArityType = {
-  // matching arity required
-  STRICT: "strict",
-  // all missing are allowed on typecheck
-  DEFAULTS: "defaults",
-  // any list will work
-  LIST: "list",
-  // called without list set
-  NONE: "none",
-  // can be called via string or list set or string
-  SINGLE: "single",
-};
+const { Method, ArityType } = require("./types");
+const { VariableContext, VariableType } = require("../Variable/types");
+const bultinsConstants = require("./consts");
 
 const camelToSnake = (str) => {
   return str
@@ -67,15 +13,6 @@ const camelToSnake = (str) => {
     .filter((s) => s)
     .map((s) => s.toLowerCase())
     .join("_");
-};
-const snakeToCamel = (str) => {
-  return str
-    .split(/_([a-z]*)/)
-    .filter((s) => s)
-    .map((s) => {
-      s[0].toUpperCase() + s.slice(1);
-    })
-    .join("");
 };
 
 const jsTranslatedStrToStrMethods = {
@@ -151,8 +88,8 @@ const Builtins = {
       // need to abstract arity errors
       if (!content || !filename) console.error("Method Requires Two arguments");
       let filePath = path.resolve(ctx.output || ctx.root, filename);
-      console.info("Writing to: " + filePath);
-      console.info("Content: " + content.slice(0, 100) + "...");
+      // console.info("Writing to: " + filePath);
+      // console.info("Content: " + content.slice(0, 100) + "...");
       fs.ensureDirSync(path.dirname(filePath));
       fs.writeFileSync(filePath, content, "utf-8");
       return content || "";
@@ -211,6 +148,10 @@ const Builtins = {
         throw e;
       }
     },
+    eval_js: (ctx, [code]) => {
+      let result = eval(code);
+      return result + "";
+    },
   },
 };
 
@@ -267,137 +208,159 @@ Builtins.List = {
   },
 };
 
-// /** @type {{locales: Object.<string, Method>}} */
-const BuiltinMethods = [
-  new Method(
-    "run",
-    Statics.Cmd,
-    Statics.STRING,
-    Builtins.Cmd.run,
-    ArityType.SINGLE,
-    1
-  ),
-  new Method(
-    "shell",
-    Statics.Cmd,
-    Statics.STRING,
-    Builtins.Cmd.shell,
-    ArityType.SINGLE,
-    1
-  ),
-  new Method(
-    "glob",
-    Statics.FILE,
-    Statics.LIST,
-    Builtins.File.glob,
-    ArityType.SINGLE,
-    1
-  ),
-  new Method(
-    "write",
-    Statics.FILE,
-    Statics.STRING,
-    Builtins.File.write,
-    ArityType.STRICT,
-    2
-  ),
-  new Method(
-    "read",
-    Statics.FILE,
-    Statics.STRING,
-    Builtins.File.read,
-    ArityType.STRICT,
-    1
-  ),
-  new Method(
-    "filter_regex",
-    Statics.LIST,
-    Statics.LIST,
-    Builtins.List.filter_regex,
-    ArityType.SINGLE
-  ),
-  new Method(
-    "filter_out_regex",
-    Statics.LIST,
-    Statics.LIST,
-    Builtins.List.filter_out_regex,
-    ArityType.SINGLE
-  ),
-  new Method(
-    "join",
-    Statics.LIST,
-    Statics.STRING,
-    Builtins.List.join,
-    ArityType.LIST
-  ),
-  new Method(
-    "join_regex",
-    Statics.LIST,
-    Statics.STRING,
-    Builtins.List.join_regex,
-    ArityType.LIST
-  ),
+/** @type {{locales: Object.<string, Method>}} */
+const BuiltinMethods = Object.keys(bultinsConstants).flatMap((statc) => {
+  let methodsOnStaticDict = bultinsConstants[statc];
+  let methodNames = Object.keys(methodsOnStaticDict);
+  let methodsWithImpl = methodNames.map((name) => {
+    let meth = methodsOnStaticDict[name];
+    let impl = Builtins?.[statc]?.[name];
+    if (!impl)
+      throw new Error(
+        `Missing Implementation in Builtins for ${statc}.${name}`
+      );
+    return new Method(
+      name,
+      statc,
+      meth.returnType,
+      impl,
+      meth.ArityType,
+      meth.arity
+    );
+  });
+  return methodsWithImpl;
+});
 
-  ...jsTranslatedStrToStrMethodNames.map(
-    (jsName) =>
-      new Method(
-        camelToSnake(jsName),
-        Statics.STRING,
-        Statics.STRING,
-        Builtins.String[camelToSnake(jsName)],
-        // will have some zeros
-        jsTranslatedStrToStrMethods[jsName].arityType,
-        jsTranslatedStrToStrMethods[jsName].arity
-      )
-  ),
-  ...jsRegexStrToStr.map(
-    (jsName) =>
-      new Method(
-        toRegexName(camelToSnake(jsName)),
-        Statics.STRING,
-        Statics.STRING,
-        Builtins.String[toRegexName(camelToSnake(jsName))],
-        // will have some zeros
-        jsTranslatedStrToStrMethods[jsName].arityType,
-        jsTranslatedStrToStrMethods[jsName].arity
-      )
-  ),
+// [
+//   new Method(
+//     "run",
+//     Statics.Cmd,
+//     Statics.STRING,
+//     Builtins.Cmd.run,
+//     ArityType.SINGLE,
+//     1
+//   ),
+//   new Method(
+//     "shell",
+//     Statics.Cmd,
+//     Statics.STRING,
+//     Builtins.Cmd.shell,
+//     ArityType.SINGLE,
+//     1
+//   ),
+//   new Method(
+//     "glob",
+//     Statics.FILE,
+//     Statics.LIST,
+//     Builtins.File.glob,
+//     ArityType.SINGLE,
+//     1
+//   ),
+//   new Method(
+//     "write",
+//     Statics.FILE,
+//     Statics.STRING,
+//     Builtins.File.write,
+//     ArityType.STRICT,
+//     2
+//   ),
+//   new Method(
+//     "read",
+//     Statics.FILE,
+//     Statics.STRING,
+//     Builtins.File.read,
+//     ArityType.STRICT,
+//     1
+//   ),
+//   new Method(
+//     "filter_regex",
+//     Statics.LIST,
+//     Statics.LIST,
+//     Builtins.List.filter_regex,
+//     ArityType.SINGLE
+//   ),
+//   new Method(
+//     "filter_out_regex",
+//     Statics.LIST,
+//     Statics.LIST,
+//     Builtins.List.filter_out_regex,
+//     ArityType.SINGLE
+//   ),
+//   new Method(
+//     "join",
+//     Statics.LIST,
+//     Statics.STRING,
+//     Builtins.List.join,
+//     ArityType.LIST
+//   ),
+//   new Method(
+//     "join_regex",
+//     Statics.LIST,
+//     Statics.STRING,
+//     Builtins.List.join_regex,
+//     ArityType.LIST
+//   ),
 
-  new Method(
-    "set",
-    Statics.STRING,
-    Statics.STRING,
-    Builtins.String.set,
-    ArityType.SINGLE,
-    1,
-    true
-  ),
+//   ...jsTranslatedStrToStrMethodNames.map(
+//     (jsName) =>
+//       new Method(
+//         camelToSnake(jsName),
+//         Statics.STRING,
+//         Statics.STRING,
+//         Builtins.String[camelToSnake(jsName)],
+//         // will have some zeros
+//         jsTranslatedStrToStrMethods[jsName].arityType,
+//         jsTranslatedStrToStrMethods[jsName].arity
+//       )
+//   ),
+//   ...jsRegexStrToStr.map(
+//     (jsName) =>
+//       new Method(
+//         toRegexName(camelToSnake(jsName)),
+//         Statics.STRING,
+//         Statics.STRING,
+//         Builtins.String[toRegexName(camelToSnake(jsName))],
+//         // will have some zeros
+//         jsTranslatedStrToStrMethods[jsName].arityType,
+//         jsTranslatedStrToStrMethods[jsName].arity
+//       )
+//   ),
 
-  // include all string methods as mappers on list
-  // include all string methods as mappers on list
+//   new Method(
+//     "set",
+//     Statics.STRING,
+//     Statics.STRING,
+//     Builtins.String.set,
+//     ArityType.SINGLE,
+//     1,
+//     true
+//   ),
 
-  ...Object.keys(Builtins.String).map(
-    (snakeName) =>
-      new Method(
-        snakeName,
-        Statics.LIST,
-        Statics.LIST,
-        Builtins.List[snakeName],
-        Builtins.String[snakeName].arityType,
-        Builtins.String[snakeName].arity
-      )
-  ),
+//   // include all string methods as mappers on list
+//   // include all string methods as mappers on list
 
-  new Method(
-    "map",
-    Statics.LIST,
-    Statics.LIST,
-    Builtins.List.map,
-    ArityType.SINGLE,
-    1,
-    true
-  ),
-];
+//   ...Object.keys(Builtins.String).map(
+//     (snakeName) =>
+//       new Method(
+//         snakeName,
+//         Statics.LIST,
+//         Statics.LIST,
+//         Builtins.List[snakeName],
+//         Builtins.String[snakeName].arityType,
+//         Builtins.String[snakeName].arity
+//       )
+//   ),
+
+//   new Method(
+//     "map",
+//     Statics.LIST,
+//     Statics.LIST,
+//     Builtins.List.map,
+//     ArityType.SINGLE,
+//     1,
+//     true
+//   ),
+// ];
 
 module.exports = {
   Method,

@@ -1,7 +1,7 @@
-const { VariableContext, VariableType } = require("./variableContext");
 const { ParserToken, TokenType, Statics } = require("./tokenizeCommand");
-const { Method, BuiltinMethods } = require("./methods");
+const { BuiltinMethods } = require("common/core/Method");
 const { ParserContext } = require("./paserContext");
+const { VariableContext, VariableType } = require("common/core/Variable/types");
 
 /**
  * @param {ParserToken[]} cmdTokens - The parsed tokens in command.

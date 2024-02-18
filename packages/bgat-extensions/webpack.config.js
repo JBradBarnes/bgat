@@ -5,7 +5,7 @@ module.exports = {
   entry: "./index.js",
   output: {
     filename: "extension.js",
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "out"),
     libraryTarget: "commonjs", // Specify CommonJS as the target
   },
   target: "node", // Set the target environment to Node.js

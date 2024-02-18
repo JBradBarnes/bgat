@@ -6,10 +6,10 @@
   "engines": {
     "vscode": "^1.0.0"
   },
-  "main": "./extension.js",
+  "main": "./out/extension.js",
   "scripts": {
-    "prebuild": "webpack --config webpack.config.js",
-    "build": "npx vsce package",
+    "build": "webpack --config webpack.config.js",
+    "pack": "npx vsce package",
     "test": "jest",
     "jest:watch": "jest --watch"
   },
@@ -51,5 +51,9 @@
     "vscode-test": "^1.6.1",
     "webpack": "^5.90.2",
     "webpack-cli": "^5.1.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JBradBarnes/begat.git"
   }
 }

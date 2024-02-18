@@ -1,7 +1,7 @@
 const { stripComments } = require("./stripComments");
 const { checkSyntax } = require("./syntaxCheckCmd");
 const { executeCmd } = require("./executeCmd");
-const { VariableContext, VariableType } = require("./variableContext");
+const { VariableContext, VariableType } = require("common/core/Variable/types");
 const { splitStatements: splitCommands } = require("./splitStatements");
 const { tokenize } = require("./tokenizeCommand");
 

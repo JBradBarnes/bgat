@@ -1,8 +1,8 @@
 // const path = require("path");
 // const { BuiltinMethods } = require("begat/src/parser/methods.js");
 // const { Statics } = require("begat/src/parser/tokenizeCommand.js");
-const { BuiltinMethods } = require("bgat-parser/methods");
-const { Statics } = require("bgat-parser/tokenizeCommand");
+const { BuiltinMethods } = require("common/core/Method/bultins");
+const { Statics } = require("common/core/Token/types");
 
 class BgatCompletionProvider {
   provideCompletionItems(document, position, token, context) {

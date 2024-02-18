@@ -2,10 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const yargs = require("yargs");
 const { ParserContext } = require("bgat-parser/paserContext");
-const {
-  VariableContext,
-  VariableType,
-} = require("bgat-parser/variableContext");
+const { VariableContext, VariableType } = require("common/core/Variable/types");
 
 const argv = yargs
   .option("entry", {

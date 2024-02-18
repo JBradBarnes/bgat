@@ -1,8 +1,5 @@
-const {
-  templateTokenizer,
-  tokenize,
-  TokenType,
-} = require("../tokenizeCommand");
+let { TokenType } = require("common/core/Token/types");
+const { templateTokenizer, tokenize } = require("../tokenizeCommand");
 
 test("Template splits children correctly", () => {
   let str = "here {$var} there";
