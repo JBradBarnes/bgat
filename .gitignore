@@ -1,4 +1,7 @@
 node_modules
 *\.generated\.*
 .vscode-test
-out
+packages/bgat-extensions/out
+.vscode/
+out/
+node_modules/

@@ -11,7 +11,7 @@
   "main": "./out/extension.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "pack": "npx vsce package",
+    "pack": "vsce package",
     "test": "jest",
     "jest:watch": "jest --watch"
   },
@@ -52,7 +52,8 @@
     "vscode": "^1.1.37",
     "vscode-test": "^1.6.1",
     "webpack": "^5.90.2",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "vsce": "2.15.0"
   },
   "repository": {
     "type": "git",

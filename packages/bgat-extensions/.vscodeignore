@@ -1,8 +1,10 @@
 # .vscodeignore
-node_modules/
+**/node_modules/**
 .vscode/
 src/
 *.log
 *.md
 *.test.ts
 .git/**
+**/.git
+**/.git/**
