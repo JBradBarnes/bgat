@@ -1,5 +1,7 @@
 {
   "name": "bgat-extensions",
+  "license": "MIT",
+  "author": "Joseph Barnes",
   "displayName": "bgat",
   "description": "Language support for bgat",
   "version": "0.0.1",

@@ -20,8 +20,8 @@
     "url": "git+https://github.com/JBradBarnes/bgat.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "author": "Joseph Barnes",
   "bugs": {
     "url": "https://github.com/JBradBarnes/begat/issues"
   },
