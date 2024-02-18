@@ -1,5 +1,5 @@
 const vscode = require("vscode");
-const BgatCompletionProvider = require("../completionProvider");
+const BgatCompletionProvider = require("../src/completionProvider");
 
 const setup = async () => {
   // Your test code

@@ -1,7 +1,8 @@
-# Ignore everything
-*
-
-# Include only the contents of the out folder
-!out/
-!out/**
-!TextMateGrammer.json
+# .vscodeignore
+node_modules/
+.vscode/
+src/
+*.log
+*.md
+*.test.ts
+.git/**

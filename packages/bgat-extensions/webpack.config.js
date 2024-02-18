@@ -2,7 +2,7 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = {
-  entry: "./index.js",
+  entry: "./src/index.js",
   output: {
     filename: "extension.js",
     path: path.resolve(__dirname, "out"),
@@ -14,12 +14,15 @@ module.exports = {
     __filename: false, // Keep the original __filename behavior
   },
   mode: "development", // Adjust the mode as needed (development or production)
+  externals: {
+    vscode: "commonjs vscode", // Specify vscode as an external dependency
+  },
   plugins: [
     new webpack.IgnorePlugin({
       resourceRegExp: /^vscode$/,
     }),
     new webpack.IgnorePlugin({
-      resourceRegExp: /COMMIT_EDITMSG/,
+      resourceRegExp: /\.git/,
     }),
   ],
 };

@@ -1,10 +1,9 @@
-# Ignore everything
+# .vscodeignore
 
-\*
-.git
-
-# Include only the contents of the out folder
-
-!out/
-!out/\*\*
-!TextMateGrammer\.json
+node*modules/
+out/
+dist/
+.vscode/
+*.log
+\_.md
+\*.test.ts

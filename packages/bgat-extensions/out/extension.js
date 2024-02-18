@@ -788,23 +788,23 @@ eval("/* -----------------------------------------------------------------------
 
 /***/ }),
 
-/***/ "./completionProvider.js":
-/*!*******************************!*\
-  !*** ./completionProvider.js ***!
-  \*******************************/
+/***/ "./src/completionProvider.js":
+/*!***********************************!*\
+  !*** ./src/completionProvider.js ***!
+  \***********************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-eval("const { bultinsConstants } = __webpack_require__(/*! common/core/Method/consts */ \"../common/core/Method/consts.js\");\nconst { Statics } = __webpack_require__(/*! common/core/Token/types */ \"../common/core/Token/types.js\");\n\nclass BgatCompletionProvider {\n  provideCompletionItems(document, position, token, context) {\n    const line = document.lineAt(position).text;\n    const prefix = this.extractWordPrefix(line);\n    const suggestions = this.getSuggestions(prefix);\n    console.log(\"suggestions:\", suggestions);\n    return suggestions;\n  }\n\n  extractWordPrefix(line) {\n    // Starting from the current position, move backward to find the start of the word\n    let start = line.length - 1;\n    while (start >= 0 && this.isWordCharacter(line[start])) {\n      start--;\n    }\n\n    // Extract the word from the line\n    const word = line.slice(start + 1);\n    return word;\n  }\n\n  isWordCharacter(char) {\n    // Define the characters that are considered part of a word\n    const wordCharacters = /[a-zA-Z0-9_\\.]/;\n    return wordCharacters.test(char);\n  }\n\n  getSuggestions(prefix) {\n    // Implement your logic to get suggestions based on the extracted word\n    // For example, you can filter your static methods or names starting with the given word\n    const possibleStatics = this.filterByPrefix(Object.values(Statics), prefix);\n    const possibleStaticMethods = this.filterByPrefix(\n      Object.entries(bultinsConstants).flatMap(([bindType, methods]) => {\n        let methodNames = Object.keys(methods);\n        return methodNames.map((name) => `${bindType}.${name}`);\n      }),\n      prefix\n    );\n\n    return [...possibleStatics, ...possibleStaticMethods];\n  }\n\n  filterByPrefix(array, prefix) {\n    return array.filter((item) => item.startsWith(prefix));\n  }\n}\n\nmodule.exports = BgatCompletionProvider;\n\n\n//# sourceURL=webpack://bgat-extensions/./completionProvider.js?");
+eval("const { bultinsConstants } = __webpack_require__(/*! common/core/Method/consts */ \"../common/core/Method/consts.js\");\nconst { Statics } = __webpack_require__(/*! common/core/Token/types */ \"../common/core/Token/types.js\");\n\nclass BgatCompletionProvider {\n  provideCompletionItems(document, position, token, context) {\n    const line = document.lineAt(position).text;\n    const prefix = this.extractWordPrefix(line);\n    const suggestions = this.getSuggestions(prefix);\n    console.log(\"suggestions:\", suggestions);\n    return suggestions;\n  }\n\n  extractWordPrefix(line) {\n    // Starting from the current position, move backward to find the start of the word\n    let start = line.length - 1;\n    while (start >= 0 && this.isWordCharacter(line[start])) {\n      start--;\n    }\n\n    // Extract the word from the line\n    const word = line.slice(start + 1);\n    return word;\n  }\n\n  isWordCharacter(char) {\n    // Define the characters that are considered part of a word\n    const wordCharacters = /[a-zA-Z0-9_\\.]/;\n    return wordCharacters.test(char);\n  }\n\n  getSuggestions(prefix) {\n    // Implement your logic to get suggestions based on the extracted word\n    // For example, you can filter your static methods or names starting with the given word\n    const possibleStatics = this.filterByPrefix(Object.values(Statics), prefix);\n    const possibleStaticMethods = this.filterByPrefix(\n      Object.entries(bultinsConstants).flatMap(([bindType, methods]) => {\n        let methodNames = Object.keys(methods);\n        return methodNames.map((name) => `${bindType}.${name}`);\n      }),\n      prefix\n    );\n\n    return [...possibleStatics, ...possibleStaticMethods];\n  }\n\n  filterByPrefix(array, prefix) {\n    return array.filter((item) => item.startsWith(prefix));\n  }\n}\n\nmodule.exports = BgatCompletionProvider;\n\n\n//# sourceURL=webpack://bgat-extensions/./src/completionProvider.js?");
 
 /***/ }),
 
-/***/ "./index.js":
-/*!******************!*\
-  !*** ./index.js ***!
-  \******************/
+/***/ "./src/index.js":
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-eval("const vscode = __webpack_require__(Object(function webpackMissingModule() { var e = new Error(\"Cannot find module 'vscode'\"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));\n// const serverModule = require(\"./bgatServer.js\");\nconst BgatCompletionProvider = __webpack_require__(/*! ./completionProvider */ \"./completionProvider.js\");\n\nlet server;\n\nfunction activate(context) {\n  console.log(\"Bgat extension activated\");\n\n  server = (__webpack_require__(/*! vscode-languageserver/node */ \"../../node_modules/vscode-languageserver/node.js\").createConnection)();\n  server.listen();\n\n  const completionProvider = vscode.languages.registerCompletionItemProvider(\n    \"bgat\",\n    new BgatCompletionProvider()\n  );\n\n  context.subscriptions.push(completionProvider);\n}\n\nfunction deactivate() {\n  if (server) {\n    server.close();\n    console.log(\"Bgat extension deactivated\");\n  }\n}\n\nmodule.exports = {\n  activate,\n  deactivate,\n};\n\n\n//# sourceURL=webpack://bgat-extensions/./index.js?");
+eval("const vscode = __webpack_require__(Object(function webpackMissingModule() { var e = new Error(\"Cannot find module 'vscode'\"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));\n// const serverModule = require(\"./bgatServer.js\");\nconst BgatCompletionProvider = __webpack_require__(/*! ./completionProvider */ \"./src/completionProvider.js\");\n\nlet server;\n\nfunction activate(context) {\n  console.log(\"Bgat extension activated\");\n\n  server = (__webpack_require__(/*! vscode-languageserver/node */ \"../../node_modules/vscode-languageserver/node.js\").createConnection)();\n  server.listen();\n\n  const completionProvider = vscode.languages.registerCompletionItemProvider(\n    \"bgat\",\n    new BgatCompletionProvider()\n  );\n\n  context.subscriptions.push(completionProvider);\n}\n\nfunction deactivate() {\n  if (server) {\n    server.close();\n    console.log(\"Bgat extension deactivated\");\n  }\n}\n\nmodule.exports = {\n  activate,\n  deactivate,\n};\n\n\n//# sourceURL=webpack://bgat-extensions/./src/index.js?");
 
 /***/ }),
 
@@ -974,7 +974,7 @@ module.exports = require("util");
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __webpack_require__("./index.js");
+/******/ 	var __webpack_exports__ = __webpack_require__("./src/index.js");
 /******/ 	var __webpack_export_target__ = exports;
 /******/ 	for(var i in __webpack_exports__) __webpack_export_target__[i] = __webpack_exports__[i];
 /******/ 	if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
