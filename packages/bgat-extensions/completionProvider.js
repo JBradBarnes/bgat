@@ -1,7 +1,4 @@
-// const path = require("path");
-// const { BuiltinMethods } = require("begat/src/parser/methods.js");
-// const { Statics } = require("begat/src/parser/tokenizeCommand.js");
-const { BuiltinMethods } = require("common/core/Method/bultins");
+const { bultinsConstants } = require("common/core/Method/consts");
 const { Statics } = require("common/core/Token/types");
 
 class BgatCompletionProvider {
@@ -36,7 +33,10 @@ class BgatCompletionProvider {
     // For example, you can filter your static methods or names starting with the given word
     const possibleStatics = this.filterByPrefix(Object.values(Statics), prefix);
     const possibleStaticMethods = this.filterByPrefix(
-      BuiltinMethods.map(({ name, bindType }) => `${bindType}.${name}`),
+      Object.entries(bultinsConstants).flatMap(([bindType, methods]) => {
+        let methodNames = Object.keys(methods);
+        return methodNames.map((name) => `${bindType}.${name}`);
+      }),
       prefix
     );
 

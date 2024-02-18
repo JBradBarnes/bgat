@@ -5,7 +5,7 @@ const path = require("path");
 const { execSync } = require("child_process");
 const { Method, ArityType } = require("./types");
 const { VariableContext, VariableType } = require("../Variable/types");
-const bultinsConstants = require("./consts");
+const { bultinsConstants } = require("./consts");
 
 const camelToSnake = (str) => {
   return str

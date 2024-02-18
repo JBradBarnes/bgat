@@ -54,24 +54,6 @@ const jsTranslatedStrToStrMethodNames = Object.keys(
 
 const toRegexName = (name) => `regex_${name}`;
 
-const strToStr = (name) => (ctx, args) => {
-  return (ctx.subject?.text || "")[name](...args) + "";
-};
-
-const regexStrToStr =
-  (name) =>
-  (ctx, [arg1, ...args]) => {
-    return (ctx.subject?.text || "")[name](new RegExp(arg1), ...args) + "";
-  };
-
-const mapperToStringMethod = (name) => (ctx, args) => {
-  let result = ctx.subject.children.flatMap((child) => {
-    let strSubject = new ParserToken(TokenType.STRING, child);
-    return BuiltinMethods.String[name]({ ...ctx, subject: strSubject }, args);
-  });
-  return result;
-};
-
 /**
  * @typedef {Object.<Statics, BuiltinTypeSet>} BuiltinConstants
  */
@@ -149,4 +131,4 @@ const bultinsConstants = {
   },
 };
 
-module.exports = bultinsConstants;
+module.exports = { bultinsConstants };
